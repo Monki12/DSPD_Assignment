@@ -5,6 +5,8 @@
 #include "LinkedList.h"
 #include "FamilyStructure.h"
 
+#define NAME_MAX_SIZE 50
+
 typedef enum {EXIT,FIRSTPAGE,SIGNUP,LOGIN} Pagetype;
 
 Pagetype FirstPage(Node** Fams_Listpptr,Node** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr);
@@ -22,14 +24,35 @@ int main()
     initList(&Expenses_List);
 
     //Call Method to Load Data from files
-    int active_user_id;
-    int active_family_id;
+
+    //Defining and Initializing 
+    int active_user_id = 0;
+    int active_family_id = 0;
     
     Pagetype nextPage;
     nextPage = FirstPage(&Fams_List,&Users_List, &active_user_id,&active_family_id);
     
     printf("\nGoing to Page : %d ",nextPage);
 
+    switch (nextPage)
+    {
+    case LOGIN: 
+        {
+            //nextPage = LoginPage(&Fams_List,&Users_List, &active_user_id,&active_family_id);
+        }
+        break;
+    
+    case SIGNUP: 
+        {
+            nextPage = SignUpPage(&Fams_List,&Users_List, &active_user_id,&active_family_id);
+        }
+        break;
+    
+    default:
+        break;
+    }
+
+    printf("\nExiting App. . .");
     return 0;
 }
 
@@ -59,4 +82,31 @@ Pagetype FirstPage(Node** Fams_Listpptr,Node** Users_Listpptr,int* active_userid
     }
     
     return ret_page;
+}
+
+Pagetype SignUpPage(Node** Fams_Listpptr,Node** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr)
+{
+    Pagetype ret_page;
+
+    char fam_name[NAME_MAX_SIZE];
+    char user_name[NAME_MAX_SIZE];
+    float user_income = 0.0;
+
+    printf("\nWelcome, \nPlease enter valid details to sign up\n");
+
+    printf("\nPlease enter new Family name : ");
+    scanf("%[^\n]s",fam_name);
+    
+    printf("\nPlease enter new User name : ");
+    scanf("%[^\n]s",user_name);
+
+    printf("\nPlease enter user income : ");
+    scanf("%f",&user_income);
+
+    //Family* newfamdata_ptr = CreateFamilyStruct(fam_name,user_name,user_income);
+    //status_code sc = AddFamtoList(Fams_Listpptr,Users_Listpptr,newfamdata_ptr)
+
+    //status_code sc = CreateFamily(all parameters)
+
+    Pagetype ret_page;
 }

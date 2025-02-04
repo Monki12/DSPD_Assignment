@@ -13,6 +13,7 @@ typedef enum {RENT,UTILITY,GROCERY,STATIONARY,LEISURE} Categorytype;
 typedef struct Family_tag
 {
     int family_id;
+    int no_of_users;
     char* family_name;
     float family_income;
     float family_expense;
