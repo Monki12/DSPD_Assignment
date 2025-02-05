@@ -2,10 +2,10 @@
 
 void initList(Node** lpptr)
 {
-    lpptr = NULL;
+    *lpptr = NULL;
 }
 
-Node* CreateNode(Node** lpptr, void* data_ptr)
+Node* CreateNode(void* data_ptr)
 {
    Node* new_ptr = (Node*)malloc(sizeof(Node));
    if(new_ptr != NULL)
@@ -19,7 +19,7 @@ Node* CreateNode(Node** lpptr, void* data_ptr)
 status_code InsertAfter(Node** lpptr, Node* prev_ptr , void* data_ptr)
 {
     status_code sc = SUCCESS;
-    Node* new_ptr = CreateNode(lpptr,data_ptr);
+    Node* new_ptr = CreateNode(data_ptr);
     if(new_ptr == NULL)
     {
         printf("\nMemory Allocation Failed for new Node!");
@@ -91,15 +91,46 @@ status_code DeleteAfter(Node** lpptr, Node* prev_ptr, Node* node_ptr, void** dat
 }
 
 // Function to print the linked list (assuming integer data for simplicity)
-void printList(Node* head) {
+void printList(Node* head)
+{
     Node* current = head;
-    printf("Linked List: ");
+    printf("\nLinked List: ");
     while (current != NULL) {
         printf("%d -> ", *(int*)(current->data_ptr));
         current = current->next;
     }
     printf("NULL\n");
 }
+
+void printTypeList(Node* head, NodeType type) {
+    Node* current = head;
+    printf("\nLinked List:\n");
+
+    while (current != NULL) {
+        switch (type) {
+            case FAMILY: {
+                Family* fam = (Family*)(current->data_ptr);
+                printf("Family ID: %s -> ", fam->family_name);
+                break;
+            }
+            case USER: {
+                User* user = (User*)(current->data_ptr);
+                printf("User ID: %s -> ", user->user_name);
+                break;
+            }
+            case EXPENSE: {
+                Expense* expense = (Expense*)(current->data_ptr);
+                printf("Expense ID: %d -> ", expense->expense_id);
+                break;
+            }
+            default:
+                printf("Unknown NodeType -> ");
+        }
+        current = current->next;
+    }
+    printf("NULL\n");
+}
+
 
 // int main() {
 //     Node* head = NULL;

@@ -1,8 +1,6 @@
 #ifndef FAMILYSTRUCTURE_H
 #define FAMILYSTRUCTURE_H
 
-#include "LinkedList.h"
-
 typedef struct Node_tag Node;//fwd declaration to deal with circular dependency
 
 typedef enum {FALSE,TRUE} boolean;

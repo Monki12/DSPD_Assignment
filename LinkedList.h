@@ -14,7 +14,10 @@ typedef struct Node_tag{
 } Node;
 
 void initList(Node** head);
-Node* CreateNode(Node** lpptr, void* data_ptr);
+void printList(Node* head);
+void printTypeList(Node* head, NodeType type);
+
+Node* CreateNode( void* data_ptr);
 status_code InsertAfter(Node** lpptr, Node* prev_ptr , void* data_ptr);
 status_code DeleteAfter(Node** lpptr, Node* prev_ptr, Node* node_ptr, void** data_pptr);
 
