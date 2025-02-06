@@ -9,8 +9,8 @@
 typedef enum {EXIT,FIRSTPAGE,SIGNUP,LOGIN} Pagetype;
 
 Pagetype FirstPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr);
-Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr);
-status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int* active_userid_ptr, int* active_familyid_ptr, char* fam_name , char* user_name , float user_income );
+Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr,int* numOfFams_ptr,int* numofUSers_ptr);
+status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int* active_userid_ptr, int* active_familyid_ptr, char* fam_name , char* user_name , float user_income,int* numOfFams_ptr,int* numofUSers_ptr);
 
 int main()
 {
@@ -18,6 +18,11 @@ int main()
     FamNode* Fams_List = NULL;
     UserNode* Users_List = NULL;
     ExpenseNode* Expenses_List = NULL;
+
+    //Load data
+    int numOfFams = 0;
+    int numOfUsers = 0;
+    int numOfExpenses = 0;
 
     int active_user_id = 0;
     int active_family_id = 0;
@@ -36,7 +41,7 @@ int main()
     
     case SIGNUP: 
         {
-            nextPage = SignUpPage(&Fams_List,&Users_List, &active_user_id,&active_family_id);
+            nextPage = SignUpPage(&Fams_List,&Users_List, &active_user_id,&active_family_id,&numOfFams,&numOfUsers);
         }
         break;
     
@@ -76,7 +81,7 @@ Pagetype FirstPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active
     return ret_page;
 }
 
-Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr)
+Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr,int* numOfFams_ptr,int* numofUsers_ptr)
 {
     Pagetype ret_page = FIRSTPAGE;
 
@@ -97,16 +102,16 @@ Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* activ
     printf("\nPlease enter user income : ");
     scanf("%f",&user_income);
 
-    status_code sc = CreateFamily(Fams_Listpptr,Users_Listpptr, active_userid_ptr,active_familyid_ptr,fam_name,user_name,user_income);
+    status_code sc = CreateFamily(Fams_Listpptr,Users_Listpptr, active_userid_ptr,active_familyid_ptr,fam_name,user_name,user_income,numOfFams_ptr,numofUsers_ptr);
 
     if(sc)
     {
         printf("Family Created Successfully with 1 member.");
-        printf("\n\tFamily ID = %d\n\tUser ID=%d",(*Fams_Listpptr)->family_id,(*Users_Listpptr)->user_id);
+        printf("\n\tFamily ID = %d\n\tUser ID = %d",(*Fams_Listpptr)->family_id,(*Users_Listpptr)->user_id);
     }
 }
 
-status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int* active_userid_ptr, int* active_familyid_ptr, char* fam_name , char* user_name , float user_income )
+status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int* active_userid_ptr, int* active_familyid_ptr, char* fam_name , char* user_name , float user_income,int* numOfFams_ptr,int* numofUsers_ptr)
 {
     status_code sc = FAILURE;
     status_code InsertedUser;
@@ -121,7 +126,10 @@ status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int*
 
         if(newUserNode_ptr != NULL)
         {
-            newUserNode_ptr->user_id = 1;
+            newFamNode_ptr->family_id =  ++(*numOfFams_ptr);
+            newFamNode_ptr->family_name = fam_name;
+
+            newUserNode_ptr->user_id = ++(*numofUsers_ptr) ;
             newUserNode_ptr->user_name = user_name;
             newUserNode_ptr->user_income = user_income;
             newUserNode_ptr->family_id = newFamNode_ptr->family_id;
@@ -134,8 +142,11 @@ status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int*
             if(InsertedFamily && InsertedUser && InsertedUserAsMember)
             {
                 sc = SUCCESS;
+                newFamNode_ptr->no_of_users++;
+
                 *active_familyid_ptr = newFamNode_ptr->family_id;
                 *active_userid_ptr = newUserNode_ptr->user_id;
+
             }
         }
     }
