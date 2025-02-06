@@ -62,7 +62,8 @@ status_code InsertAfter_Fam(FamNode** lpptr, FamNode* prev_ptr, FamNode* nptr);
 status_code InsertAfter_User(UserNode** lpptr, UserNode* prev_ptr, UserNode* nptr);
 status_code InsertAfter_Expense(ExpenseNode** lpptr, ExpenseNode* prev_ptr, ExpenseNode* nptr);
 
-
-
+FamNode* SearchFamList(FamNode* lptr,int id);
+UserNode* SearchUserList(UserNode* lptr,int id);
+ExpenseNode* SearchExpenseList(ExpenseNode* lptr,int id);
 
 #endif

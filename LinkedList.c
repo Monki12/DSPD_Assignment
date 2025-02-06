@@ -60,7 +60,7 @@ UserNode* CreateUserNode()
    return uptr;
 }
 
-ExpenseNode* CreateNode(void* data_ptr)
+ExpenseNode* CreateExpenseNode(void* data_ptr)
 {
    ExpenseNode* eptr = (ExpenseNode*)malloc(sizeof(ExpenseNode));
    if(eptr != NULL)
@@ -195,6 +195,35 @@ status_code InsertAfter_Expense(ExpenseNode** lpptr, ExpenseNode* prev_ptr, Expe
     return sc;
 }
 
+FamNode* SearchFamList(FamNode* lptr,int id)
+{
+    FamNode* nptr = lptr;
+    while(nptr != NULL && nptr->family_id 1= id)
+    {
+        nptr = nptr->next;
+    }
+    return nptr;
+}
+
+UserNode* SearchUserList(UserNode* lptr,int id)
+{
+    UserNode* nptr = lptr;
+    while(nptr != NULL && nptr->user_id != id)
+    {
+        nptr = nptr->next;
+    }
+    return nptr;
+}
+
+ExpenseNode* SearchExpenseList(ExpenseNode* lptr,int id)
+{
+    ExpenseNode* nptr = lptr;
+    while(nptr != NULL && nptr->expense_id != id)
+    {
+        nptr = nptr->next;
+    }
+    return nptr;
+}
 
 // Node* CreateNode(void* data_ptr)
 // {
