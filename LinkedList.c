@@ -198,7 +198,7 @@ status_code InsertAfter_Expense(ExpenseNode** lpptr, ExpenseNode* prev_ptr, Expe
 FamNode* SearchFamList(FamNode* lptr,int id)
 {
     FamNode* nptr = lptr;
-    while(nptr != NULL && nptr->family_id 1= id)
+    while(nptr != NULL && nptr->family_id != id)
     {
         nptr = nptr->next;
     }

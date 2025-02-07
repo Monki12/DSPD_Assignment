@@ -8,11 +8,10 @@
 
 typedef enum {EXIT,FIRSTPAGE,SIGNUP,LOGIN,FAMILYHOME} Pagetype;
 
-Pagetype FirstPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr);
-Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr,int* numOfFams_ptr,int* numofUSers_ptr);
-status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int* active_userid_ptr, int* active_familyid_ptr, char* fam_name , char* user_name , float user_income,int* numOfFams_ptr,int* numofUSers_ptr);
-
-Pagetype LoginPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr,int* numOfFams_ptr,int* numofUsers_ptr);
+Pagetype FirstPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr);
+Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* numOfFams_ptr,int* numofUSers_ptr);
+status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, char* fam_name , char* user_name , float user_income,int* numOfFams_ptr,int* numofUSers_ptr);
+Pagetype LoginPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,UserNode* active_userNode_ptr,FamNode* active_famNode_ptr,int* numOfFams_ptr,int* numofUsers_ptr);
 
 int main()
 {
@@ -26,11 +25,11 @@ int main()
     int numOfUsers = 0;
     int numOfExpenses = 0;
 
-    int active_user_id = 0;
-    int active_family_id = 0;
+    UserNode* active_userNode_ptr = NULL;
+    FamNode* active_famNode = NULL;
 
     Pagetype nextPage;
-    nextPage = FirstPage(&Fams_List,&Users_List, &active_user_id,&active_family_id);
+    nextPage = FirstPage(&Fams_List,&Users_List);
     printf("\nGoing to Page : %d ",nextPage);
 
     boolean exit = FALSE;
@@ -41,18 +40,18 @@ int main()
         {
             case FIRSTPAGE:
                 {
-                    nextPage = FirstPage(&Fams_List,&Users_List, &active_user_id,&active_family_id);
-                }
+                    nextPage = FirstPage(&Fams_List,&Users_List);
+                } break;
 
             case LOGIN: 
                 {
-                    nextPage = LoginPage(&Fams_List,&Users_List, &active_user_id,&active_family_id,&numOfFams,&numOfUsers);
+                    nextPage = LoginPage(&Fams_List,&Users_List, active_userNode_ptr,active_famNode,&numOfFams,&numOfUsers);
                 }
                 break;
             
             case SIGNUP: 
                 {
-                    nextPage = SignUpPage(&Fams_List,&Users_List, &active_user_id,&active_family_id,&numOfFams,&numOfUsers);
+                    nextPage = SignUpPage(&Fams_List,&Users_List,&numOfFams,&numOfUsers);
                 }
                 break;
             
@@ -71,9 +70,9 @@ int main()
     return 0;
 }
 
-Pagetype FirstPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr)
+Pagetype FirstPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr)
 {
-    printf("\nWelcome to the First Page of Family Expense Tracker App\n");
+    printf("\n\nWelcome to the First Page of Family Expense Tracker App\n");
     
     Pagetype ret_page;
     int choice;
@@ -93,13 +92,13 @@ Pagetype FirstPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active
         case 3: ret_page = EXIT; 
                 break; 
         default: printf("\nInvalid Input, Please Try Again...");
-                ret_page = FirstPage(Fams_Listpptr,Users_Listpptr, active_userid_ptr,active_familyid_ptr);
+                ret_page = FirstPage(Fams_Listpptr,Users_Listpptr);
     }
     
     return ret_page;
 }
 
-Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr,int* numOfFams_ptr,int* numofUsers_ptr)
+Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* numOfFams_ptr,int* numofUsers_ptr)
 {
     Pagetype ret_page = FIRSTPAGE;
 
@@ -107,7 +106,7 @@ Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* activ
     char user_name[NAME_MAX_SIZE];
     float user_income = 0.0;
 
-    printf("\nWelcome, \nPlease enter valid details to sign up\n");
+    printf("\nWelcome to Sign Up Page, \nPlease enter valid details to sign up\n");
 
     printf("\nPlease enter new Family name : ");
     getchar();
@@ -120,14 +119,14 @@ Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* activ
     printf("\nPlease enter user income : ");
     scanf("%f",&user_income);
 
-    status_code sc = CreateFamily(Fams_Listpptr,Users_Listpptr, active_userid_ptr,active_familyid_ptr,fam_name,user_name,user_income,numOfFams_ptr,numofUsers_ptr);
+    status_code sc = CreateFamily(Fams_Listpptr,Users_Listpptr,fam_name,user_name,user_income,numOfFams_ptr,numofUsers_ptr);
 
     if(sc)
     {
-        printf("Family Created Successfully with 1 member.");
-        printf("Please use below credentials to login");
+        printf("\nFamily Created Successfully with 1 member.");
+        printf("\nPlease use below credentials to login :");
         printf("\n\tFamily ID = %d\n\tUser ID = %d",(*Fams_Listpptr)->family_id,(*Users_Listpptr)->user_id);
-        ret_page = LOGIN;
+        ret_page = FIRSTPAGE;
     }
     else
     {
@@ -136,7 +135,7 @@ Pagetype SignUpPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* activ
     return ret_page;
 }
 
-status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int* active_userid_ptr, int* active_familyid_ptr, char* fam_name , char* user_name , float user_income,int* numOfFams_ptr,int* numofUsers_ptr)
+status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, char* fam_name , char* user_name , float user_income,int* numOfFams_ptr,int* numofUsers_ptr)
 {
     status_code sc = FAILURE;
     status_code InsertedUser;
@@ -168,10 +167,6 @@ status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int*
             {
                 sc = SUCCESS;
                 newFamNode_ptr->no_of_users++;
-
-                *active_familyid_ptr = newFamNode_ptr->family_id;
-                *active_userid_ptr = newUserNode_ptr->user_id;
-
             }
             else
             {
@@ -189,7 +184,7 @@ status_code CreateFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr, int*
     return sc;
 }
 
-Pagetype LoginPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active_userid_ptr,int* active_familyid_ptr,int* numOfFams_ptr,int* numofUsers_ptr)
+Pagetype LoginPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,UserNode* active_userNode_ptr,FamNode* active_famNode_ptr,int* numOfFams_ptr,int* numofUsers_ptr)
 {
     Pagetype ret_page = FIRSTPAGE;
 
@@ -201,38 +196,52 @@ Pagetype LoginPage(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,int* active
     int user_id;
     char user_name[NAME_MAX_SIZE];
 
-    printf("\nWelcome, \nPlease enter valid details to log in\n");
+    printf("\n\nWelcome to Login Page, \nPlease enter valid details to log in\n");
 
-    printf("\nPlease enter new Family Id : ");
+    printf("\nPlease enter Family Id : ");
     scanf("%d",&family_id);
     
-    printf("\nPlease enter new User Id : ");
+    printf("\nPlease enter User Id : ");
     scanf("%d",&user_id);
 
     printf("\nPlease enter User name : ");
     getchar();
-    scanf("%[^\n]s",user_name);
+    scanf("%[^\n]s",user_name);// can use fgets(user_name,MAX_NAME_SIZE,stdin)
 
-    printf("\nSearching Family");
-    curr_FamNode_ptr = SearchFamList(*Fams_Listpptr,family_id);
-    if(curr_FamNode_ptr != NULL)
+    //Search User list
+    curr_UserNode_ptr = SearchUserList(*Users_Listpptr,user_id);
+    if(curr_UserNode_ptr != NULL)
     {
-        curr_UserNode_ptr = SearchUserList(*Users_Listpptr,user_id);
-        if(curr_UserNode_ptr != NULL /*&& curr_UserNode_ptr->user_name == user_name*/ )
+        if(user_id == curr_UserNode_ptr->user_id && family_id == curr_UserNode_ptr->family_id)
         {
-            authentication = SUCCESS;
-            printf("\nFamily User Login Successful!\nLoading FamilyHomePage...");
-            ret_page = FAMILYHOME;
+            curr_FamNode_ptr = SearchFamList(*Fams_Listpptr,family_id);
+            if(curr_FamNode_ptr != NULL)
+            {
+                authentication = SUCCESS;
+                printf("\nFamily User Login Successful!\nLoading FamilyHomePage...");
+                active_famNode_ptr = curr_FamNode_ptr;
+                active_userNode_ptr = curr_UserNode_ptr;
+                ret_page = FAMILYHOME;
+            }
+            else
+            {
+                printf("\nFamily not found. Error!");
+                printf("\nFamily User Login NOT Successful!\nLoading Page...");
+                //ret_page = LOGIN;
+            }
         }
         else
         {
+            printf("\nFamily ID and User ID mismatch!");
             printf("\nFamily User Login NOT Successful!\nLoading Page...");
-            ret_page = LOGIN;
+            //ret_page = LOGIN;
         }
     }
     else
     {
-        printf("\nFamily not found!");
+        printf("\nFamily User Login NOT Successful!\nLoading Page...");
+        //ret_page = LOGIN;
     }
+
     return ret_page;
 }
