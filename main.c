@@ -10,20 +10,191 @@ typedef enum
 } Pagetype;
 
 Pagetype FirstPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr);
-Pagetype SignUpPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, int *numOfFams_ptr, int *numofUSers_ptr,int* lastFamId, int* lastUserId);
-status_code CreateFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, char *fam_name, char *user_name, float user_income, int *numOfFams_ptr, int *numofUSers_ptr, int* lastFamId , int* lastUserId);
+Pagetype SignUpPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, int *numOfFams_ptr, int *numofUSers_ptr, int *lastFamId, int *lastUserId);
+status_code CreateFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, char *fam_name, char *user_name, float user_income, int *numOfFams_ptr, int *numofUSers_ptr, int *lastFamId, int *lastUserId);
 Pagetype LoginPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, UserNode **active_userNode_ptr, FamNode **active_famNode_ptr);
-Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, UserNode *active_userNode_ptr, FamNode *active_famNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr,int* lastFamId, int* lastUserId, int* lastExpId,boolean* deletedActiveUser,boolean* deletedActiveFamily);
-status_code AddUser(UserNode **User_Listpptr, UserNode **FamMember_Listpptr, UserNode *newUserNode, FamNode *active_famNode_ptr, int *numOfUsers, int* lastUserId);
-status_code AddExpense(ExpenseNode **Exp_Listpptr, ExpenseNode *newExpNode, UserNode *active_userNode_ptr, int *numOfExp_ptr, int* lastExpId);
+Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, UserNode *active_userNode_ptr, FamNode *active_famNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int *lastFamId, int *lastUserId, int *lastExpId, boolean *deletedActiveUser, boolean *deletedActiveFamily);
+status_code AddUser(UserNode **User_Listpptr, UserNode **FamMember_Listpptr, UserNode *newUserNode, FamNode *active_famNode_ptr, int *numOfUsers, int *lastUserId);
+status_code AddExpense(ExpenseNode **Exp_Listpptr, ExpenseNode *newExpNode, UserNode *active_userNode_ptr, int *numOfExp_ptr, int *lastExpId);
 void CalculateTotalExpense(ExpenseNode *Exps_Listptr, FamNode *active_famNode_ptr, UserNode *Users_Listptr);
 void Get_categorical_expense(ExpenseNode *Exps_Listptr, UserNode *Users_Listptr, FamNode *active_famNode_ptr, Categorytype category);
 void AddUsertoFamily(FamNode *active_fam_ptr, UserNode *newUser_ptr);
 status_code DeleteUser(UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, int userID);
-status_code DeleteFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,ExpenseNode** Exps_Listpptr,FamNode* active_famNode_ptr,UserNode* active_userNode_ptr,int* numOfFams_ptr,int* numofUsers_ptr,int* numOfExp_ptr,int famID);
+status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, UserNode *active_userNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int famID);
 
 void mergeSort(UserNode **userArray, int left, int right, int category);
 void merge(UserNode **userArray, int left, int mid, int right, int category);
+
+// File handling
+// Save Family Data to CSV
+void saveFamilies(FamNode *Fams_List) {
+    FILE *file = fopen("families.csv", "w");
+    if (file == NULL) {
+        printf("Error opening families.csv for writing.\n");
+        return;
+    }
+
+    // Write header (optional)
+    fprintf(file, "FamilyID,FamilyName,NoOfUsers,FamilyIncome,FamilyExpense\n");
+
+    FamNode *temp = Fams_List;
+    while (temp != NULL) {
+        fprintf(file, "%d,%s,%d,%.2f,%.2f\n",
+                temp->family_id, temp->family_name, temp->no_of_users,
+                temp->family_income, temp->family_expense);
+        temp = temp->next;
+    }
+
+    fclose(file);
+}
+
+// Save User Data to CSV
+void saveUserData(UserNode *userList) {
+    FILE *userFile = fopen("users.csv", "w");
+    if (userFile == NULL) {
+        printf("Error opening file for saving users.\n");
+        return;
+    }
+
+    // Write the header for user data
+    fprintf(userFile, "UserID,FamilyID,UserName,UserIncome\n");
+
+    UserNode *tempUser = userList;
+    while (tempUser != NULL) {
+        // Write user data in CSV format
+        fprintf(userFile, "%d,%d,%s,%.2f\n", tempUser->user_id, tempUser->family_id, tempUser->user_name,
+                tempUser->user_income);
+        tempUser = tempUser->next;
+    }
+
+    fclose(userFile);
+}
+
+// Save Metadata (counts and last IDs) to a separate CSV
+void saveMetadata(int numOfFams, int numOfUsers, int numOfExpenses, int lastFamId, int lastUserId, int lastExpId) {
+    FILE *file = fopen("metadata.csv", "w");
+    if (file == NULL) {
+        printf("Error opening file for saving metadata.\n");
+        return;
+    }
+
+    // Save the counts and last used IDs
+    fprintf(file, "%d,%d,%d,%d,%d,%d\n", 
+            numOfFams, numOfUsers, numOfExpenses, 
+            lastFamId, lastUserId, lastExpId);
+
+    fclose(file);
+}
+
+// Save Expense Data to CSV
+void saveExpenseData(ExpenseNode *expenseList) {
+    FILE *expFile = fopen("expenses.csv", "w");
+    if (expFile == NULL) {
+        printf("Error opening file for saving expenses.\n");
+        return;
+    }
+
+    // Write the header for expense data
+    fprintf(expFile, "ExpenseID,UserID,Category,ExpenseAmount,Date\n");
+
+    ExpenseNode *tempExp = expenseList;
+    while (tempExp != NULL) {
+        // Write expense data in CSV format
+        fprintf(expFile, "%d,%d,%d,%.2f,%d\n", tempExp->expense_id, tempExp->user_id, tempExp->category,
+                tempExp->expense_amount, tempExp->date);
+        tempExp = tempExp->next;
+    }
+
+    fclose(expFile);
+}
+
+// Load Family Data from CSV
+void loadFamilyData(FamNode **famList) {
+    FILE *famFile = fopen("families.csv", "r");
+    if (famFile == NULL) {
+        printf("Error opening file for loading families.\n");
+        return;
+    }
+
+    // Skip header line
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), famFile);
+
+    while (fgets(buffer, sizeof(buffer), famFile)) {
+        FamNode *newFam = (FamNode *)malloc(sizeof(FamNode));
+        sscanf(buffer, "%d,%49[^,],%d,%f,%f", &newFam->family_id, newFam->family_name, &newFam->no_of_users,
+               &newFam->family_income, &newFam->family_expense);
+
+        newFam->next = *famList;
+        *famList = newFam;
+    }
+
+    fclose(famFile);
+}
+
+// Load User Data from CSV
+void loadUserData(UserNode **userList) {
+    FILE *userFile = fopen("users.csv", "r");
+    if (userFile == NULL) {
+        printf("Error opening file for loading users.\n");
+        return;
+    }
+
+    // Skip header line
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), userFile);
+
+    while (fgets(buffer, sizeof(buffer), userFile)) {
+        UserNode *newUser = (UserNode *)malloc(sizeof(UserNode));
+        sscanf(buffer, "%d,%d,%49[^,],%f", &newUser->user_id, &newUser->family_id, newUser->user_name,
+               &newUser->user_income);
+
+        newUser->next = *userList;
+        *userList = newUser;
+    }
+
+    fclose(userFile);
+}
+
+// Load Expense Data from CSV
+void loadExpenseData(ExpenseNode **expenseList) {
+    FILE *expFile = fopen("expenses.csv", "r");
+    if (expFile == NULL) {
+        printf("Error opening file for loading expenses.\n");
+        return;
+    }
+
+    // Skip header line
+    char buffer[256];
+    fgets(buffer, sizeof(buffer), expFile);
+
+    while (fgets(buffer, sizeof(buffer), expFile)) {
+        ExpenseNode *newExpense = (ExpenseNode *)malloc(sizeof(ExpenseNode));
+        sscanf(buffer, "%d,%d,%d,%f,%d", &newExpense->expense_id, &newExpense->user_id, &newExpense->category,
+               &newExpense->expense_amount, &newExpense->date);
+
+        newExpense->next = *expenseList;
+        *expenseList = newExpense;
+    }
+
+    fclose(expFile);
+}
+
+// Load Metadata (counts and last IDs) from the metadata file
+void loadMetadata(int *numOfFams, int *numOfUsers, int *numOfExpenses, int *lastFamId, int *lastUserId, int *lastExpId) {
+    FILE *file = fopen("metadata.csv", "r");
+    if (file == NULL) {
+        printf("Error opening file for loading metadata.\n");
+        return;
+    }
+
+    // Read the counts and last used IDs
+    fscanf(file, "%d,%d,%d,%d,%d,%d\n", 
+           numOfFams, numOfUsers, numOfExpenses, 
+           lastFamId, lastUserId, lastExpId);
+
+    fclose(file);
+}
 
 int main()
 {
@@ -32,15 +203,21 @@ int main()
     UserNode *Users_List = NULL;
     ExpenseNode *Expenses_List = NULL;
 
-    // Load data
     int numOfFams = 0;
     int numOfUsers = 0;
     int numOfExpenses = 0;
 
-    //for ID generation
+    // for ID generation
     int lastFamId = 0;
     int lastUserId = 0;
     int lastExpId = 0;
+
+      // Load data from CSV files into the linked lists
+    //   loadMetadata(&numOfFams, &numOfUsers, &numOfExpenses, &lastFamId, &lastUserId, &lastExpId);
+
+    //   loadFamilyData(&Fams_List);
+    //   loadUserData(&Users_List);
+    //   loadExpenseData(&Expenses_List);
 
     UserNode *active_userNode_ptr = NULL;
     FamNode *active_famNode_ptr = NULL;
@@ -69,20 +246,20 @@ int main()
 
         case SIGNUP:
         {
-            nextPage = SignUpPage(&Fams_List, &Users_List, &numOfFams, &numOfUsers,&lastFamId,&lastUserId);
+            nextPage = SignUpPage(&Fams_List, &Users_List, &numOfFams, &numOfUsers, &lastFamId, &lastUserId);
         }
         break;
 
         case FAMILYHOME:
         {
             printf("\nGoing to FAMILY HOME PAGE!");
-            boolean deletedActiveUser,deletedActiveFamily;
-            nextPage = FamilyHomePage(&Fams_List, &Users_List, &Expenses_List, active_userNode_ptr, active_famNode_ptr, &numOfFams, &numOfUsers, &numOfExpenses,&lastFamId,&lastUserId, &lastExpId,&deletedActiveUser,&deletedActiveFamily);
-            if(deletedActiveUser)
+            boolean deletedActiveUser, deletedActiveFamily;
+            nextPage = FamilyHomePage(&Fams_List, &Users_List, &Expenses_List, active_userNode_ptr, active_famNode_ptr, &numOfFams, &numOfUsers, &numOfExpenses, &lastFamId, &lastUserId, &lastExpId, &deletedActiveUser, &deletedActiveFamily);
+            if (deletedActiveUser)
             {
                 active_userNode_ptr = NULL;
             }
-            if(deletedActiveFamily)
+            if (deletedActiveFamily)
             {
                 active_famNode_ptr = NULL;
             }
@@ -95,7 +272,13 @@ int main()
     }
 
     printf("\nExiting App. . .");
-    // save all current info in file
+   // Before exiting, save all data to CSV files
+   saveMetadata(numOfFams, numOfUsers, numOfExpenses, lastFamId, lastUserId, lastExpId);
+
+   saveFamilyData(Fams_List);
+   saveUserData(Users_List);
+   saveExpenseData(Expenses_List);
+
 
     return 0;
 }
@@ -132,7 +315,7 @@ Pagetype FirstPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr)
     return ret_page;
 }
 
-Pagetype SignUpPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, int *numOfFams_ptr, int *numofUsers_ptr, int* lastFamId, int* lastUserId)
+Pagetype SignUpPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, int *numOfFams_ptr, int *numofUsers_ptr, int *lastFamId, int *lastUserId)
 {
     Pagetype ret_page = FIRSTPAGE;
 
@@ -153,7 +336,7 @@ Pagetype SignUpPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, int *num
     printf("\nPlease enter user income : ");
     scanf("%f", &user_income);
 
-    status_code sc = CreateFamily(Fams_Listpptr, Users_Listpptr, fam_name, user_name, user_income, numOfFams_ptr, numofUsers_ptr,lastFamId,lastUserId);
+    status_code sc = CreateFamily(Fams_Listpptr, Users_Listpptr, fam_name, user_name, user_income, numOfFams_ptr, numofUsers_ptr, lastFamId, lastUserId);
 
     if (sc)
     {
@@ -170,7 +353,7 @@ Pagetype SignUpPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, int *num
 }
 
 // family total income needs to be calculated at the time of family creation
-status_code CreateFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, char *fam_name, char *user_name, float user_income, int *numOfFams_ptr, int *numofUsers_ptr, int* lastFamId , int* lastUserId)
+status_code CreateFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, char *fam_name, char *user_name, float user_income, int *numOfFams_ptr, int *numofUsers_ptr, int *lastFamId, int *lastUserId)
 {
     status_code sc = FAILURE;
     status_code InsertedUser;
@@ -288,7 +471,7 @@ Pagetype LoginPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, UserNode 
     return ret_page;
 }
 
-Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, UserNode *active_userNode_ptr, FamNode *active_famNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr,int* lastFamId, int* lastUserId, int* lastExpId,boolean* deletedActiveUser,boolean* deletedActiveFamily)
+Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, UserNode *active_userNode_ptr, FamNode *active_famNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int *lastFamId, int *lastUserId, int *lastExpId, boolean *deletedActiveUser, boolean *deletedActiveFamily)
 {
     Pagetype ret_page = FIRSTPAGE;
     if (active_famNode_ptr != NULL && active_userNode_ptr != NULL)
@@ -344,12 +527,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                 break;
 
             case 3:
-                // Search and display user-specific expenses in a tabular format
-                printf("\nDisplaying Expenses for User ID: %d\n", active_userNode_ptr->user_id);
-                printf("----------------------------------------------------\n");
-                printf("| %-10s | %-10s | %-12s | %-10s |\n", "Exp. ID", "Category", "Amount (Rs.)", "Date");
-                printf("----------------------------------------------------\n");
-
+            
                 ExpenseNode *temp = *Exps_Listpptr;
                 int found = 0;
                 float total_expense = 0.0;
@@ -428,7 +606,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
             case 9:
             {
                 UserNode *newUser = CreateUserNode();
-                status_code sc = AddUser(Users_Listpptr, active_famNode_ptr->family_members_ptr, newUser, active_famNode_ptr, numofUsers_ptr,lastUserId);
+                status_code sc = AddUser(Users_Listpptr, active_famNode_ptr->family_members_ptr, newUser, active_famNode_ptr, numofUsers_ptr, lastUserId);
                 if (sc == SUCCESS)
                 {
                     printf("\nNew User added!");
@@ -486,15 +664,15 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                 scanf("%d", &userID);
                 // check if userID == Active...if so return to Homepage
                 // check if user is the last user, if so Delete FAmily too
-                 if (userID == active_userNode_ptr->user_id)
-                 {
+                if (userID == active_userNode_ptr->user_id)
+                {
                     printf("\nDo you want to Delete Current user? (Enter 1 to confirm deletion)\n");
-                    scanf("%d",&confirm);
-                    if(confirm)
+                    scanf("%d", &confirm);
+                    if (confirm)
                     {
                         printf("\nDeletion Confirmed.");
                         sc = DeleteUser(Users_Listpptr, Exps_Listpptr, active_famNode_ptr, userID);
-                        if(sc == SUCCESS)
+                        if (sc == SUCCESS)
                         {
                             printf("\nUser Deleted Successfully");
                             *deletedActiveUser = TRUE;
@@ -505,24 +683,22 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                         {
                             printf("\nError occured while deleting user!");
                         }
-
                     }
-                 }
-                 else
-                 {
+                }
+                else
+                {
                     sc = DeleteUser(Users_Listpptr, Exps_Listpptr, active_famNode_ptr, userID);
-                 }
+                }
 
-                 if(sc == SUCCESS)
-                 {
+                if (sc == SUCCESS)
+                {
                     *numofUsers_ptr--;
-                    if(*numofUsers_ptr == 0)
+                    if (*numofUsers_ptr == 0)
                     {
-                        //Delete family;
-                        sc = DeleteFamily(Fams_Listpptr,Users_Listpptr,Exps_Listpptr,active_famNode_ptr,active_userNode_ptr,numOfFams_ptr,numofUsers_ptr,numOfExp_ptr,active_famNode_ptr->family_id);
-
+                        // Delete family;
+                        sc = DeleteFamily(Fams_Listpptr, Users_Listpptr, Exps_Listpptr, active_famNode_ptr, active_userNode_ptr, numOfFams_ptr, numofUsers_ptr, numOfExp_ptr, active_famNode_ptr->family_id);
                     }
-                 }
+                }
 
                 break;
 
@@ -531,10 +707,10 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                 printf("\nEnter current Family ID to delete: ");
                 int famID;
                 scanf("%d", &famID);
-                if(famID == active_famNode_ptr->family_id)
+                if (famID == active_famNode_ptr->family_id)
                 {
-                    status_code sc2 = DeleteFamily(Fams_Listpptr,Users_Listpptr,Exps_Listpptr,active_famNode_ptr,active_userNode_ptr,numOfFams_ptr,numofUsers_ptr,numOfExp_ptr,famID);
-                    if(sc2 == SUCCESS)
+                    status_code sc2 = DeleteFamily(Fams_Listpptr, Users_Listpptr, Exps_Listpptr, active_famNode_ptr, active_userNode_ptr, numOfFams_ptr, numofUsers_ptr, numOfExp_ptr, famID);
+                    if (sc2 == SUCCESS)
                     {
                         *numOfFams_ptr--;
                         *deletedActiveFamily = TRUE;
@@ -577,7 +753,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
     return ret_page;
 }
 
-status_code AddUser(UserNode **User_Listpptr, UserNode **FamMember_arr, UserNode *newUserNode, FamNode *active_famNode_ptr, int *numOfUsers, int* lastUserId)
+status_code AddUser(UserNode **User_Listpptr, UserNode **FamMember_arr, UserNode *newUserNode, FamNode *active_famNode_ptr, int *numOfUsers, int *lastUserId)
 {
     status_code sc = FAILURE;
     if (active_famNode_ptr->no_of_users < FAM_MAX_SIZE)
@@ -616,7 +792,7 @@ status_code AddUser(UserNode **User_Listpptr, UserNode **FamMember_arr, UserNode
     return sc;
 }
 
-status_code AddExpense(ExpenseNode **Exp_Listpptr, ExpenseNode *newExpNode, UserNode *active_userNode_ptr, int *numOfExp_ptr, int* lastExpId)
+status_code AddExpense(ExpenseNode **Exp_Listpptr, ExpenseNode *newExpNode, UserNode *active_userNode_ptr, int *numOfExp_ptr, int *lastExpId)
 {
     status_code sc = FAILURE;
     if (newExpNode != NULL)
@@ -702,8 +878,10 @@ void CalculateTotalExpense(ExpenseNode *Exps_Listptr, FamNode *active_famNode_pt
             temp = temp->next;
         }
 
+        float balance = active_famNode_ptr->family_income - total_expense;
         printf("--------------------------------------------------------------\n");
         printf("Total Family Monthly Expense: Rs. %.2f\n", total_expense);
+        printf("Total Family Monthly Balance: Rs. %.2f\n", balance);
         printf("--------------------------------------------------------------\n");
 
         // Update the family's total expense value
@@ -854,10 +1032,10 @@ void AddUsertoFamily(FamNode *active_fam_ptr, UserNode *newUser_ptr)
     }
 }
 
-status_code DeleteFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,ExpenseNode** Exps_Listpptr,FamNode* active_famNode_ptr,UserNode* active_userNode_ptr,int* numOfFams_ptr,int* numofUsers_ptr,int* numOfExp_ptr,int famID)
+status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, UserNode *active_userNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int famID)
 {
     status_code sc = SUCCESS;
-    for(int i = 0; i < FAM_MAX_SIZE && sc; i++)
+    for (int i = 0; i < FAM_MAX_SIZE && sc; i++)
     {
         if (active_famNode_ptr->family_members_ptr[i] != 0)
         {
@@ -869,16 +1047,15 @@ status_code DeleteFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,Expen
             }
         }
     }
-    
 
-    if(sc == FAILURE)
+    if (sc == FAILURE)
     {
         printf("\nUnable to Delete Family users! ");
     }
     else
     {
-        FamNode* prev_Fam_ptr = NULL;
-        FamNode* Fam_ptr = SearchFamList(*Fams_Listpptr,&prev_Fam_ptr,famID);
+        FamNode *prev_Fam_ptr = NULL;
+        FamNode *Fam_ptr = SearchFamList(*Fams_Listpptr, &prev_Fam_ptr, famID);
         if (Fam_ptr == NULL)
         {
             printf("\nError: Family ID %d not found in the list!", famID);
@@ -886,8 +1063,8 @@ status_code DeleteFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,Expen
         else
         {
             printf("\nDeleting Family from list");
-            sc = DeleteAfter_Fam(Fams_Listpptr,prev_Fam_ptr,Fam_ptr);
-            if(sc == FAILURE)
+            sc = DeleteAfter_Fam(Fams_Listpptr, prev_Fam_ptr, Fam_ptr);
+            if (sc == FAILURE)
             {
                 printf("\nError Occured! Unable to Delete Family");
             }
@@ -898,11 +1075,8 @@ status_code DeleteFamily(FamNode** Fams_Listpptr,UserNode** Users_Listpptr,Expen
                     (*numOfFams_ptr)--;
                     printf("\nFamily count after deletion: %d", *numOfFams_ptr);
                 }
-                
             }
         }
-        
     }
     return sc;
 }
-
