@@ -3,11 +3,11 @@
 void initFamNode(FamNode* fptr)
 {
     fptr->family_id = 0;
-    fptr->family_name = NULL;
+    strcpy(fptr->family_name,"");
     fptr->no_of_users = 0;
     fptr->family_income = 0.0;
     fptr->family_expense = 0.0;
-    fptr->family_members_ptr = NULL;
+    memset(fptr->family_members_ptr, 0, sizeof(fptr->family_members_ptr));
     fptr->next = NULL;
 }
 
@@ -15,8 +15,9 @@ void initUserNode(UserNode* uptr)
 {
     uptr->user_id = 0;
     uptr->family_id = 0;
-    uptr->user_name = NULL;
+    strcpy(uptr->user_name,"");
     uptr->user_income = 0.0;
+    memset(uptr->category_expense, 0, sizeof(uptr->category_expense));
     uptr->next = NULL;
 }
 
@@ -36,11 +37,11 @@ FamNode* CreateFamNode()
     if(fptr != NULL)
     {
         fptr->family_id = 0;
-        fptr->family_name = NULL;
+        strcpy(fptr->family_name,"");
         fptr->no_of_users = 0;
         fptr->family_income = 0.0;
         fptr->family_expense = 0.0;
-        fptr->family_members_ptr = NULL;
+        memset(fptr->family_members_ptr, 0, sizeof(fptr->family_members_ptr));
         fptr->next = NULL;
     }
    return fptr;
@@ -53,14 +54,15 @@ UserNode* CreateUserNode()
     {
         uptr->user_id = 0;
         uptr->family_id = 0;
-        uptr->user_name = NULL;
+        strcpy(uptr->user_name,"");
         uptr->user_income = 0.0;
+        memset(uptr->category_expense, 0, sizeof(uptr->category_expense));
         uptr->next = NULL;
     }
    return uptr;
 }
 
-ExpenseNode* CreateExpenseNode(void* data_ptr)
+ExpenseNode* CreateExpenseNode()
 {
    ExpenseNode* eptr = (ExpenseNode*)malloc(sizeof(ExpenseNode));
    if(eptr != NULL)
@@ -195,87 +197,131 @@ status_code InsertAfter_Expense(ExpenseNode** lpptr, ExpenseNode* prev_ptr, Expe
     return sc;
 }
 
-FamNode* SearchFamList(FamNode* lptr,int id)
+FamNode* SearchFamList(FamNode* lptr,FamNode** prev_ptr,int id)
 {
     FamNode* nptr = lptr;
     while(nptr != NULL && nptr->family_id != id)
     {
+        *prev_ptr = nptr;
         nptr = nptr->next;
     }
     return nptr;
 }
 
-UserNode* SearchUserList(UserNode* lptr,int id)
+UserNode* SearchUserList(UserNode* lptr,UserNode** prev_ptr,int id)
 {
     UserNode* nptr = lptr;
     while(nptr != NULL && nptr->user_id != id)
     {
+        *prev_ptr = nptr;
         nptr = nptr->next;
     }
     return nptr;
 }
 
-ExpenseNode* SearchExpenseList(ExpenseNode* lptr,int id)
+ExpenseNode* SearchExpenseList(ExpenseNode* lptr,ExpenseNode** prev_ptr,int id)
 {
     ExpenseNode* nptr = lptr;
     while(nptr != NULL && nptr->expense_id != id)
     {
+        *prev_ptr = nptr;
         nptr = nptr->next;
     }
     return nptr;
 }
 
-// Node* CreateNode(void* data_ptr)
-// {
-//    Node* new_ptr = (Node*)malloc(sizeof(Node));
-//    if(new_ptr != NULL)
-//    {
-//         new_ptr->data_ptr = data_ptr;
-//         new_ptr->next = NULL;
-//    }
-//    return new_ptr;
-// }
+status_code DeleteAfter_Fam(FamNode** lpptr, FamNode* prev_ptr, FamNode* nptr)
+{
+    status_code sc = SUCCESS;
+    if(*lpptr == NULL || nptr == NULL)
+    {
+        printf("\nError : Node to delete is NULL!");
+        sc=FAILURE;
+    }
+    else
+    {
+        if(prev_ptr == NULL)
+        {
+            if(*lpptr == nptr)
+            {
+                *lpptr = nptr->next;
+                free(nptr);
+            }
+            else
+            {
+                sc = FAILURE;
+            }
+        }
+        else
+        {
+            prev_ptr->next = nptr->next;
+            free(nptr);
+        }
+    }
+    return sc;
+}
 
-// status_code InsertAfter(Node** lpptr, Node* prev_ptr , void* data_ptr)
-// {
-//     status_code sc = SUCCESS;
-//     Node* new_ptr = CreateNode(data_ptr);
-//     if(new_ptr == NULL)
-//     {
-//         printf("\nMemory Allocation Failed for new Node!");
-//         sc = FAILURE;
-//     }
-//     else
-//     {
-//         if(*lpptr == NULL) 
-//         {
-//             if(prev_ptr == NULL)
-//             {
-//                 *lpptr = new_ptr;
-//             }
-//             else
-//             {
-//                 printf("\nMismatch Error");
-//                 sc = FAILURE;
-//             }
-//         }
-//         else
-//         {
-//             if(prev_ptr == NULL)
-//             {
-//                 new_ptr->next = *lpptr;
-//                 *lpptr = new_ptr;
-//             }
-//             else
-//             {
-//                 new_ptr->next = prev_ptr->next;
-//                 prev_ptr->next = new_ptr;
-//             }
-//         }
-//     }
+status_code DeleteAfter_User(UserNode** lpptr, UserNode* prev_ptr, UserNode* nptr)
+{
+    status_code sc = SUCCESS;
+    if(*lpptr == NULL || nptr == NULL)
+    {
+        printf("\nError : Node to delete is NULL!");
+        sc=FAILURE;
+    }
+    else
+    {
+        if(prev_ptr == NULL)
+        {
+            if(*lpptr == nptr)
+            {
+                *lpptr = nptr->next;
+                free(nptr);
+            }
+            else
+            {
+                sc = FAILURE;
+            }
+        }
+        else
+        {
+            prev_ptr->next = nptr->next;
+            free(nptr);
+        }
+    }
+    return sc;
+}
 
-//     return sc;
-// }
+status_code DeleteAfter_Exp(ExpenseNode** lpptr, ExpenseNode* prev_ptr, ExpenseNode* nptr)
+{
+    status_code sc = SUCCESS;
+    if(*lpptr == NULL || nptr == NULL)
+    {
+        printf("\nError : Node to delete is NULL!");
+        sc=FAILURE;
+    }
+    else
+    {
+        if(prev_ptr == NULL)
+        {
+            if(*lpptr == nptr)
+            {
+                *lpptr = nptr->next;
+                free(nptr);
+            }
+            else
+            {
+                sc = FAILURE;
+            }
+        }
+        else
+        {
+            prev_ptr->next = nptr->next;
+            free(nptr);
+        }
+    }
+    return sc;
+}
 
 // status_code DeleteAfter(Node** lpptr, Node* prev_ptr, Node* node_ptr, void** data_pptr)
 // {
