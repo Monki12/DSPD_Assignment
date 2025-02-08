@@ -27,7 +27,7 @@ void merge(UserNode **userArray, int left, int mid, int right, int category);
 
 // File handling
 // Save Family Data to CSV
-void saveFamilies(FamNode *Fams_List) {
+void saveFamilyData(FamNode *Fams_List) {
     FILE *file = fopen("families.csv", "w");
     if (file == NULL) {
         printf("Error opening families.csv for writing.\n");
@@ -116,17 +116,34 @@ void loadFamilyData(FamNode **famList) {
         return;
     }
 
-    // Skip header line
     char buffer[256];
-    fgets(buffer, sizeof(buffer), famFile);
+    fgets(buffer, sizeof(buffer), famFile); // Skip header
 
     while (fgets(buffer, sizeof(buffer), famFile)) {
         FamNode *newFam = (FamNode *)malloc(sizeof(FamNode));
-        sscanf(buffer, "%d,%49[^,],%d,%f,%f", &newFam->family_id, newFam->family_name, &newFam->no_of_users,
-               &newFam->family_income, &newFam->family_expense);
+        if (!newFam) {
+            printf("Memory allocation failed for family node.\n");
+            fclose(famFile);
+            return;
+        }
 
-        newFam->next = *famList;
-        *famList = newFam;
+        if (sscanf(buffer, "%d,%49[^,],%d,%f,%f", &newFam->family_id, newFam->family_name, 
+                   &newFam->no_of_users, &newFam->family_income, &newFam->family_expense) != 5) {
+            printf("Invalid data format in families.csv\n");
+            free(newFam);
+            continue;
+        }
+
+        newFam->next = NULL;
+
+        // Insert at end (to maintain order)
+        if (*famList == NULL) {
+            *famList = newFam;
+        } else {
+            FamNode *temp = *famList;
+            while (temp->next) temp = temp->next;
+            temp->next = newFam;
+        }
     }
 
     fclose(famFile);
@@ -140,17 +157,34 @@ void loadUserData(UserNode **userList) {
         return;
     }
 
-    // Skip header line
     char buffer[256];
-    fgets(buffer, sizeof(buffer), userFile);
+    fgets(buffer, sizeof(buffer), userFile); // Skip header
 
     while (fgets(buffer, sizeof(buffer), userFile)) {
         UserNode *newUser = (UserNode *)malloc(sizeof(UserNode));
-        sscanf(buffer, "%d,%d,%49[^,],%f", &newUser->user_id, &newUser->family_id, newUser->user_name,
-               &newUser->user_income);
+        if (!newUser) {
+            printf("Memory allocation failed for user node.\n");
+            fclose(userFile);
+            return;
+        }
 
-        newUser->next = *userList;
-        *userList = newUser;
+        if (sscanf(buffer, "%d,%d,%49[^,],%f", &newUser->user_id, &newUser->family_id, newUser->user_name,
+                   &newUser->user_income) != 4) {
+            printf("Invalid data format in users.csv\n");
+            free(newUser);
+            continue;
+        }
+
+        newUser->next = NULL;
+
+        // Insert at end
+        if (*userList == NULL) {
+            *userList = newUser;
+        } else {
+            UserNode *temp = *userList;
+            while (temp->next) temp = temp->next;
+            temp->next = newUser;
+        }
     }
 
     fclose(userFile);
@@ -164,17 +198,34 @@ void loadExpenseData(ExpenseNode **expenseList) {
         return;
     }
 
-    // Skip header line
     char buffer[256];
-    fgets(buffer, sizeof(buffer), expFile);
+    fgets(buffer, sizeof(buffer), expFile); // Skip header
 
     while (fgets(buffer, sizeof(buffer), expFile)) {
         ExpenseNode *newExpense = (ExpenseNode *)malloc(sizeof(ExpenseNode));
-        sscanf(buffer, "%d,%d,%d,%f,%d", &newExpense->expense_id, &newExpense->user_id, &newExpense->category,
-               &newExpense->expense_amount, &newExpense->date);
+        if (!newExpense) {
+            printf("Memory allocation failed for expense node.\n");
+            fclose(expFile);
+            return;
+        }
 
-        newExpense->next = *expenseList;
-        *expenseList = newExpense;
+        if (sscanf(buffer, "%d,%d,%d,%f,%d", &newExpense->expense_id, &newExpense->user_id, 
+                   &newExpense->category, &newExpense->expense_amount, &newExpense->date) != 5) {
+            printf("Invalid data format in expenses.csv\n");
+            free(newExpense);
+            continue;
+        }
+
+        newExpense->next = NULL;
+
+        // Insert at end
+        if (*expenseList == NULL) {
+            *expenseList = newExpense;
+        } else {
+            ExpenseNode *temp = *expenseList;
+            while (temp->next) temp = temp->next;
+            temp->next = newExpense;
+        }
     }
 
     fclose(expFile);
@@ -188,10 +239,10 @@ void loadMetadata(int *numOfFams, int *numOfUsers, int *numOfExpenses, int *last
         return;
     }
 
-    // Read the counts and last used IDs
-    fscanf(file, "%d,%d,%d,%d,%d,%d\n", 
-           numOfFams, numOfUsers, numOfExpenses, 
-           lastFamId, lastUserId, lastExpId);
+    if (fscanf(file, "%d,%d,%d,%d,%d,%d", 
+               numOfFams, numOfUsers, numOfExpenses, lastFamId, lastUserId, lastExpId) != 6) {
+        printf("Invalid metadata format in metadata.csv\n");
+    }
 
     fclose(file);
 }
@@ -212,12 +263,12 @@ int main()
     int lastUserId = 0;
     int lastExpId = 0;
 
-      // Load data from CSV files into the linked lists
-    //   loadMetadata(&numOfFams, &numOfUsers, &numOfExpenses, &lastFamId, &lastUserId, &lastExpId);
+      //~~Load data from CSV files into the linked lists
+      loadMetadata(&numOfFams, &numOfUsers, &numOfExpenses, &lastFamId, &lastUserId, &lastExpId);
 
-    //   loadFamilyData(&Fams_List);
-    //   loadUserData(&Users_List);
-    //   loadExpenseData(&Expenses_List);
+      loadFamilyData(&Fams_List);
+      loadUserData(&Users_List);
+      loadExpenseData(&Expenses_List);
 
     UserNode *active_userNode_ptr = NULL;
     FamNode *active_famNode_ptr = NULL;
@@ -851,7 +902,7 @@ void CalculateTotalExpense(ExpenseNode *Exps_Listptr, FamNode *active_famNode_pt
         // Display header
         printf("\nTotal Monthly Expense Breakdown (Date-wise):\n");
         printf("--------------------------------------------------------------\n");
-        printf("| %-5s | %-15s | %-10s | %-10s | %-5s |\n", "Date", "User", "Amount (Rs.)", "Category", "Date");
+        printf("| %-10s | %-10s | %-15s | %-10s | %-10s |\n", "Date", "UserID", "User", "Amount (Rs.)", "Category");
         printf("--------------------------------------------------------------\n");
 
         // Iterate through expense list
@@ -871,8 +922,9 @@ void CalculateTotalExpense(ExpenseNode *Exps_Listptr, FamNode *active_famNode_pt
             }
 
             // Print expense details
-            printf("| %-5d | %-15s | %-10.2f | %-10d | %-5d |\n",
-                   temp->date, userName, temp->expense_amount, temp->category, temp->date);
+            printf("| %-10d | %-10d | %-15s | %-10.2f | %-10d |\n",
+                temp->date, temp->user_id, userName, temp->expense_amount, temp->category);
+ 
 
             total_expense += temp->expense_amount;
             temp = temp->next;
