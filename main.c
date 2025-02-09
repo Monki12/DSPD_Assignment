@@ -22,6 +22,7 @@ void Get_highest_expense_day(ExpenseNode *Exps_Listpptr, UserNode *Users_Listppt
 void AddUsertoFamily(FamNode *active_fam_ptr, UserNode *newUser_ptr);
 status_code DeleteUser(UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, int userID);
 status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, UserNode *active_userNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int famID);
+void Get_User_expense(ExpenseNode *Exps_Listptr, UserNode* active_userNode_ptr);
 
 // File handling
 // Save Family Data to CSV
@@ -634,7 +635,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
 
             printf("\nPlease choose an option from the menu:");
 
-            // --- VIEWING OPTIONS ---
+           // --- VIEWING OPTIONS ---
             printf("\n\n--- View Information ---");
             printf("\n\t1. View Total Monthly Income");
             printf("\n\t2. View Total Monthly Expense");
@@ -648,17 +649,23 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
             printf("\n\n--- Manage Data ---");
             printf("\n\t8. Add Expense");
             printf("\n\t9. Add New User");
-            printf("\n\t10. Update User or Family Details");
+
+            // --- UPDATE MANAGEMENT OPTIONS ---
+            printf("\n\n--- Update Management Options ---");
+            printf("\n\t10. Update Family Details");
+            printf("\n\t11. Update User Details"); 
+            printf("\n\t12. Update Expense Details"); 
 
             // --- DELETE OPTIONS ---
             printf("\n\n--- Delete Data ---");
-            printf("\n\t11. Delete Expense");
-            printf("\n\t12. Delete User");
-            printf("\n\t13. Delete Family");
+            printf("\n\t13. Delete Expense");
+            printf("\n\t14. Delete User");
+            printf("\n\t15. Delete Family");
 
             // --- OTHER OPTIONS ---
             printf("\n\n--- Other ---");
-            printf("\n\t14. Log Out\n");
+            printf("\n\t16. Log Out\n");
+
 
             scanf("%d", &choice);
 
@@ -675,32 +682,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                 break;
 
             case 3:
-
-                ExpenseNode *temp = *Exps_Listpptr;
-                boolean found = FALSE;
-                float total_expense = 0.0;
-
-                while (temp != NULL)
-                {
-                    if (temp->user_id == active_userNode_ptr->user_id)
-                    {
-                        found = TRUE;
-                        printf("| %-10d | %-10d | %-12.2f | %-10d |\n",
-                               temp->expense_id, temp->category, temp->expense_amount, temp->date);
-                        total_expense += temp->expense_amount;
-                    }
-                    temp = temp->next;
-                }
-
-                if (!found)
-                {
-                    printf("| %-44s |\n", "No expenses found.");
-                }
-
-                printf("----------------------------------------------------\n");
-                printf("Total User Expense: Rs. %.2f\n", total_expense);
-                printf("----------------------------------------------------\n");
-                break;
+                   Get_User_expense(*Exps_Listpptr, active_userNode_ptr);             
 
                 // void DisplayUserExpenses(Exps_pptr,active_userNode_ptr)
                 break;
@@ -771,12 +753,19 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
             break;
 
             case 10:
-                printf("\nUpdating user or family details...");
-                // Allow changes to names, incomes, etc.
+                UpdateFamilyDetails(active_famNode_ptr);
+                break;
+            
+            case 11:
+                UpdateUserDetails(active_userNode_ptr);
+                break;
+
+            case 12:
+                UpdateExpenseDetails(Exps_Listpptr,active_userNode_ptr->user_id);
                 break;
 
             // --- DELETE OPTIONS ---
-            case 11:
+            case 13:
                 printf("\nEnter Expense ID to delete: ");
                 int expID;
                 scanf("%d", &expID);
@@ -806,7 +795,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
 
                 break;
 
-            case 12:
+            case 14:
                 int userID;
                 boolean confirm;
                 status_code sc1;
@@ -843,7 +832,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                 if (sc == SUCCESS)
                 {
                     *numofUsers_ptr--;
-                    if (*numofUsers_ptr == 0)
+                    if (active_famNode_ptr->no_of_users == 0)
                     {
                         // Delete family;
                         sc = DeleteFamily(Fams_Listpptr, Users_Listpptr, Exps_Listpptr, active_famNode_ptr, active_userNode_ptr, numOfFams_ptr, numofUsers_ptr, numOfExp_ptr, active_famNode_ptr->family_id);
@@ -852,7 +841,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
 
                 break;
 
-            case 13:
+            case 15:
                 printf("\nWARNING: Deleting a family will remove all associated users and expenses.");
                 printf("\nEnter current Family ID to delete: ");
                 int famID;
@@ -882,7 +871,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                 break;
 
             // --- OTHER OPTIONS ---
-            case 14:
+            case 16:
                 printf("\nLogging Out...");
                 logout = TRUE;
                 ret_page = FIRSTPAGE;
@@ -1249,6 +1238,7 @@ void AddUsertoFamily(FamNode *active_fam_ptr, UserNode *newUser_ptr)
 
 status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, UserNode *active_userNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int famID)
 {
+    printf("\nreached Delete function");
     status_code sc = SUCCESS;
     for (int i = 0; i < FAM_MAX_SIZE && sc; i++)
     {
@@ -1294,4 +1284,34 @@ status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Exp
         }
     }
     return sc;
+}
+
+void Get_User_expense(ExpenseNode* Exps_Listptr, UserNode* active_userNode_ptr)
+{
+    ExpenseNode *temp = Exps_Listptr;
+    boolean found = FALSE;
+    float total_expense = 0.0;
+    printf("--------------------------------------------------------------\n");
+    printf("| %-10s | %-10s | %-12s | %-10s |\n", "ExpenseID", "Category", "Amount (Rs.)", "Date");
+    printf("--------------------------------------------------------------\n");                
+    while (temp != NULL)
+    {
+        if (temp->user_id == active_userNode_ptr->user_id)
+        {
+            found = TRUE;
+            printf("| %-10d | %-10d | %-12.2f | %-10d |\n",temp->expense_id, temp->category, temp->expense_amount, temp->date);
+            total_expense += temp->expense_amount;
+        }
+        temp = temp->next;
+    }
+
+    if (!found)
+    {
+        printf("| %-44s |\n", "No expenses found.");
+    }
+
+    printf("----------------------------------------------------\n");
+    printf("Total User Expense: Rs. %.2f\n", total_expense);
+    printf("----------------------------------------------------\n");
+    
 }

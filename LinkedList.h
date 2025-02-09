@@ -98,4 +98,7 @@ void displayUsers(UserNode *Users_List);
 // Display Expense List
 void displayExpenses(ExpenseNode *Expenses_List);
 
+status_code UpdateFamilyDetails(FamNode *active_famNode);
+status_code UpdateUserDetails(UserNode *active_userNode);
+status_code UpdateExpenseDetails(ExpenseNode **Exps_Listpptr, int user_id);
 #endif

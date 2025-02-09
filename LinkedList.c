@@ -525,80 +525,68 @@ void displayExpenses(ExpenseNode *Expenses_List) {
     printf("--------------------------------------------------------------\n");
 }
 
+status_code UpdateFamilyDetails(FamNode *active_famNode)
+{
+    status_code sc = FAILURE;
+    if (active_famNode != NULL)
+    {
+        printf("Enter new family name: ");
+        scanf("%s", active_famNode->family_name);
+        sc = SUCCESS;
+        printf("Family details updated successfully.\n");
+    }
+    return sc;
+}
 
-// status_code DeleteAfter(Node** lpptr, Node* prev_ptr, Node* node_ptr, void** data_pptr)
-// {
-//     status_code sc = SUCCESS;
-//     if(*lpptr == NULL || node_ptr == NULL)
-//     {
-//         printf("\nError : Node to delete is NULL!");
-//         sc=FAILURE;
-//     }
-//     else
-//     {
-//         if(prev_ptr == NULL)
-//         {
-//             if(*lpptr == node_ptr)
-//             {
-//                 *lpptr = node_ptr->next;
-//                 *data_pptr = node_ptr->data_ptr;
-//                 free(node_ptr);
-//             }
-//             else
-//             {
-//                 sc = FAILURE;
-//             }
-//         }
-//         else
-//         {
-//             prev_ptr->next = node_ptr->next;
-//             *data_pptr = node_ptr->data_ptr;
-//             free(node_ptr);
-//         }
-//     }
-//     return sc;
-// }
+status_code UpdateUserDetails(UserNode *active_userNode)
+{
+    status_code sc = FAILURE;
+    if (active_userNode != NULL)
+    {
+        printf("Enter new username: ");
+        scanf("%s", active_userNode->user_name);
+        printf("Enter new income: ");
+        scanf("%f", &active_userNode->user_income);
+        sc = SUCCESS;
+        printf("User details updated successfully.\n");
+    }
+    return sc;
+}
+// Function to update expense details (User can update only their own expenses)
+status_code UpdateExpenseDetails(ExpenseNode **Exps_Listpptr, int user_id)
+{
+    status_code sc = FAILURE;
+    int expense_id;
+    printf("\nEnter Expense ID: ");
+    scanf("%d",&expense_id);
+    ExpenseNode *prev = NULL;
+    ExpenseNode *expNode = SearchExpenseList(*Exps_Listpptr, &prev, expense_id);
 
-// // Function to print the linked list (assuming integer data for simplicity)
-// void printList(Node* head)
-// {
-//     Node* current = head;
-//     printf("\nLinked List: ");
-//     while (current != NULL) {
-//         printf("%d -> ", *(int*)(current->data_ptr));
-//         current = current->next;
-//     }
-//     printf("NULL\n");
-// }
+    if (expNode == NULL)
+    {
+        printf("Expense with ID %d not found.\n", expense_id);
+    }
+    else
+    {
+        if (expNode->user_id != user_id)
+        {
+            printf("You can only update your own expenses.\n");
+        }
+        else
+        {
 
-// void printTypeList(Node* head, NodeType type) {
-//     Node* current = head;
-//     printf("\nLinked List:\n");
+            printf("Enter new expense category (0-4): ");
+            scanf("%d", (int *)&expNode->category);
+            printf("Enter new expense amount: ");
+            scanf("%f", &expNode->expense_amount);
+            sc = SUCCESS;
+            printf("Expense details updated successfully.\n");
+        }
+    }
 
-//     while (current != NULL) {
-//         switch (type) {
-//             case FAMILY: {
-//                 Family* fam = (Family*)(current->data_ptr);
-//                 printf("Family ID: %s -> ", fam->family_name);
-//                 break;
-//             }
-//             case USER: {
-//                 User* user = (User*)(current->data_ptr);
-//                 printf("User ID: %s -> ", user->user_name);
-//                 break;
-//             }
-//             case EXPENSE: {
-//                 Expense* expense = (Expense*)(current->data_ptr);
-//                 printf("Expense ID: %d -> ", expense->expense_id);
-//                 break;
-//             }
-//             default:
-//                 printf("Unknown NodeType -> ");
-//         }
-//         current = current->next;
-//     }
-//     printf("NULL\n");
-// }
+    return sc;
+}
+
 
 
 // // int main() {
