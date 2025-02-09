@@ -76,5 +76,26 @@ status_code DeleteAfter_Fam(FamNode** lpptr, FamNode* prev_ptr, FamNode* nptr);
 status_code DeleteAfter_User(UserNode** lpptr, UserNode* prev_ptr, UserNode* nptr);
 status_code DeleteAfter_Exp(ExpenseNode** lpptr, ExpenseNode* prev_ptr, ExpenseNode* nptr);
 
+// Family List Sorting
+void mergeSortFamilies(FamNode** headRef);
+FamNode* mergeSortedFamilies(FamNode* a, FamNode* b);
+void splitFamilyList(FamNode* source, FamNode** front, FamNode** back);
+
+// User List Sorting
+void mergeSortUsers(UserNode** headRef);
+UserNode* mergeSortedUsers(UserNode* a, UserNode* b);
+void splitUserList(UserNode* source, UserNode** front, UserNode** back);
+
+// Expense List Sorting (Sort by user_id first, then expense_id)
+void mergeSortExpenses(ExpenseNode** headRef);
+ExpenseNode* mergeSortedExpenses(ExpenseNode* a, ExpenseNode* b);
+void splitExpenseList(ExpenseNode* source, ExpenseNode** front, ExpenseNode** back);
+
+// Display Family List
+void displayFamilies(FamNode *Fams_List);
+// Display User List
+void displayUsers(UserNode *Users_List);
+// Display Expense List
+void displayExpenses(ExpenseNode *Expenses_List);
 
 #endif

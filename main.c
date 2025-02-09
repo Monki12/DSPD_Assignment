@@ -17,19 +17,19 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
 status_code AddUser(UserNode **User_Listpptr, UserNode **FamMember_Listpptr, UserNode *newUserNode, FamNode *active_famNode_ptr, int *numOfUsers, int *lastUserId);
 status_code AddExpense(ExpenseNode **Exp_Listpptr, ExpenseNode *newExpNode, UserNode *active_userNode_ptr, int *numOfExp_ptr, int *lastExpId);
 void CalculateTotalExpense(ExpenseNode *Exps_Listptr, FamNode *active_famNode_ptr, UserNode *Users_Listptr);
-void Get_categorical_expense(ExpenseNode *Exps_Listptr, UserNode *Users_Listptr, FamNode *active_famNode_ptr, Categorytype category);
+void Get_categorical_expense(ExpenseNode **Exps_Listptr, UserNode *Users_Listptr, FamNode *active_famNode_ptr, Categorytype category);
+void Get_highest_expense_day(ExpenseNode *Exps_Listpptr, UserNode *Users_Listpptr, FamNode *active_famNode_ptr);
 void AddUsertoFamily(FamNode *active_fam_ptr, UserNode *newUser_ptr);
 status_code DeleteUser(UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, int userID);
 status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, UserNode *active_userNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int famID);
 
-void mergeSort(UserNode **userArray, int left, int right, int category);
-void merge(UserNode **userArray, int left, int mid, int right, int category);
-
 // File handling
 // Save Family Data to CSV
-void saveFamilyData(FamNode *Fams_List) {
+void saveFamilyData(FamNode *Fams_List)
+{
     FILE *file = fopen("families.csv", "w");
-    if (file == NULL) {
+    if (file == NULL)
+    {
         printf("Error opening families.csv for writing.\n");
         return;
     }
@@ -38,7 +38,8 @@ void saveFamilyData(FamNode *Fams_List) {
     fprintf(file, "FamilyID,FamilyName,NoOfUsers,FamilyIncome,FamilyExpense\n");
 
     FamNode *temp = Fams_List;
-    while (temp != NULL) {
+    while (temp != NULL)
+    {
         fprintf(file, "%d,%s,%d,%.2f,%.2f\n",
                 temp->family_id, temp->family_name, temp->no_of_users,
                 temp->family_income, temp->family_expense);
@@ -49,9 +50,11 @@ void saveFamilyData(FamNode *Fams_List) {
 }
 
 // Save User Data to CSV
-void saveUserData(UserNode *userList) {
+void saveUserData(UserNode *userList)
+{
     FILE *userFile = fopen("users.csv", "w");
-    if (userFile == NULL) {
+    if (userFile == NULL)
+    {
         printf("Error opening file for saving users.\n");
         return;
     }
@@ -60,7 +63,8 @@ void saveUserData(UserNode *userList) {
     fprintf(userFile, "UserID,FamilyID,UserName,UserIncome\n");
 
     UserNode *tempUser = userList;
-    while (tempUser != NULL) {
+    while (tempUser != NULL)
+    {
         // Write user data in CSV format
         fprintf(userFile, "%d,%d,%s,%.2f\n", tempUser->user_id, tempUser->family_id, tempUser->user_name,
                 tempUser->user_income);
@@ -71,25 +75,29 @@ void saveUserData(UserNode *userList) {
 }
 
 // Save Metadata (counts and last IDs) to a separate CSV
-void saveMetadata(int numOfFams, int numOfUsers, int numOfExpenses, int lastFamId, int lastUserId, int lastExpId) {
+void saveMetadata(int numOfFams, int numOfUsers, int numOfExpenses, int lastFamId, int lastUserId, int lastExpId)
+{
     FILE *file = fopen("metadata.csv", "w");
-    if (file == NULL) {
+    if (file == NULL)
+    {
         printf("Error opening file for saving metadata.\n");
         return;
     }
 
     // Save the counts and last used IDs
-    fprintf(file, "%d,%d,%d,%d,%d,%d\n", 
-            numOfFams, numOfUsers, numOfExpenses, 
+    fprintf(file, "%d,%d,%d,%d,%d,%d\n",
+            numOfFams, numOfUsers, numOfExpenses,
             lastFamId, lastUserId, lastExpId);
 
     fclose(file);
 }
 
 // Save Expense Data to CSV
-void saveExpenseData(ExpenseNode *expenseList) {
+void saveExpenseData(ExpenseNode *expenseList)
+{
     FILE *expFile = fopen("expenses.csv", "w");
-    if (expFile == NULL) {
+    if (expFile == NULL)
+    {
         printf("Error opening file for saving expenses.\n");
         return;
     }
@@ -98,7 +106,8 @@ void saveExpenseData(ExpenseNode *expenseList) {
     fprintf(expFile, "ExpenseID,UserID,Category,ExpenseAmount,Date\n");
 
     ExpenseNode *tempExp = expenseList;
-    while (tempExp != NULL) {
+    while (tempExp != NULL)
+    {
         // Write expense data in CSV format
         fprintf(expFile, "%d,%d,%d,%.2f,%d\n", tempExp->expense_id, tempExp->user_id, tempExp->category,
                 tempExp->expense_amount, tempExp->date);
@@ -109,9 +118,11 @@ void saveExpenseData(ExpenseNode *expenseList) {
 }
 
 // Load Family Data from CSV
-void loadFamilyData(FamNode **famList) {
+void loadFamilyData(FamNode **famList)
+{
     FILE *famFile = fopen("families.csv", "r");
-    if (famFile == NULL) {
+    if (famFile == NULL)
+    {
         printf("Error opening file for loading families.\n");
         return;
     }
@@ -119,29 +130,36 @@ void loadFamilyData(FamNode **famList) {
     char buffer[256];
     fgets(buffer, sizeof(buffer), famFile); // Skip header
 
-    while (fgets(buffer, sizeof(buffer), famFile)) {
+    while (fgets(buffer, sizeof(buffer), famFile))
+    {
         FamNode *newFam = (FamNode *)malloc(sizeof(FamNode));
-        if (!newFam) {
+        if (!newFam)
+        {
             printf("Memory allocation failed for family node.\n");
             fclose(famFile);
             return;
         }
 
-        if (sscanf(buffer, "%d,%49[^,],%d,%f,%f", &newFam->family_id, newFam->family_name, 
-                   &newFam->no_of_users, &newFam->family_income, &newFam->family_expense) != 5) {
+        if (sscanf(buffer, "%d,%49[^,],%d,%f,%f", &newFam->family_id, newFam->family_name,
+                   &newFam->no_of_users, &newFam->family_income, &newFam->family_expense) != 5)
+        {
             printf("Invalid data format in families.csv\n");
             free(newFam);
             continue;
         }
-
+        memset(newFam->family_members_ptr, 0, sizeof(newFam->family_members_ptr));
         newFam->next = NULL;
 
         // Insert at end (to maintain order)
-        if (*famList == NULL) {
+        if (*famList == NULL)
+        {
             *famList = newFam;
-        } else {
+        }
+        else
+        {
             FamNode *temp = *famList;
-            while (temp->next) temp = temp->next;
+            while (temp->next)
+                temp = temp->next;
             temp->next = newFam;
         }
     }
@@ -150,9 +168,11 @@ void loadFamilyData(FamNode **famList) {
 }
 
 // Load User Data from CSV
-void loadUserData(UserNode **userList) {
+void loadUserData(UserNode **userList)
+{
     FILE *userFile = fopen("users.csv", "r");
-    if (userFile == NULL) {
+    if (userFile == NULL)
+    {
         printf("Error opening file for loading users.\n");
         return;
     }
@@ -160,16 +180,19 @@ void loadUserData(UserNode **userList) {
     char buffer[256];
     fgets(buffer, sizeof(buffer), userFile); // Skip header
 
-    while (fgets(buffer, sizeof(buffer), userFile)) {
+    while (fgets(buffer, sizeof(buffer), userFile))
+    {
         UserNode *newUser = (UserNode *)malloc(sizeof(UserNode));
-        if (!newUser) {
+        if (!newUser)
+        {
             printf("Memory allocation failed for user node.\n");
             fclose(userFile);
             return;
         }
 
         if (sscanf(buffer, "%d,%d,%49[^,],%f", &newUser->user_id, &newUser->family_id, newUser->user_name,
-                   &newUser->user_income) != 4) {
+                   &newUser->user_income) != 4)
+        {
             printf("Invalid data format in users.csv\n");
             free(newUser);
             continue;
@@ -178,11 +201,15 @@ void loadUserData(UserNode **userList) {
         newUser->next = NULL;
 
         // Insert at end
-        if (*userList == NULL) {
+        if (*userList == NULL)
+        {
             *userList = newUser;
-        } else {
+        }
+        else
+        {
             UserNode *temp = *userList;
-            while (temp->next) temp = temp->next;
+            while (temp->next)
+                temp = temp->next;
             temp->next = newUser;
         }
     }
@@ -191,9 +218,11 @@ void loadUserData(UserNode **userList) {
 }
 
 // Load Expense Data from CSV
-void loadExpenseData(ExpenseNode **expenseList) {
+void loadExpenseData(ExpenseNode **expenseList)
+{
     FILE *expFile = fopen("expenses.csv", "r");
-    if (expFile == NULL) {
+    if (expFile == NULL)
+    {
         printf("Error opening file for loading expenses.\n");
         return;
     }
@@ -201,16 +230,19 @@ void loadExpenseData(ExpenseNode **expenseList) {
     char buffer[256];
     fgets(buffer, sizeof(buffer), expFile); // Skip header
 
-    while (fgets(buffer, sizeof(buffer), expFile)) {
+    while (fgets(buffer, sizeof(buffer), expFile))
+    {
         ExpenseNode *newExpense = (ExpenseNode *)malloc(sizeof(ExpenseNode));
-        if (!newExpense) {
+        if (!newExpense)
+        {
             printf("Memory allocation failed for expense node.\n");
             fclose(expFile);
             return;
         }
 
-        if (sscanf(buffer, "%d,%d,%d,%f,%d", &newExpense->expense_id, &newExpense->user_id, 
-                   &newExpense->category, &newExpense->expense_amount, &newExpense->date) != 5) {
+        if (sscanf(buffer, "%d,%d,%d,%f,%d", &newExpense->expense_id, &newExpense->user_id,
+                   &newExpense->category, &newExpense->expense_amount, &newExpense->date) != 5)
+        {
             printf("Invalid data format in expenses.csv\n");
             free(newExpense);
             continue;
@@ -219,11 +251,15 @@ void loadExpenseData(ExpenseNode **expenseList) {
         newExpense->next = NULL;
 
         // Insert at end
-        if (*expenseList == NULL) {
+        if (*expenseList == NULL)
+        {
             *expenseList = newExpense;
-        } else {
+        }
+        else
+        {
             ExpenseNode *temp = *expenseList;
-            while (temp->next) temp = temp->next;
+            while (temp->next)
+                temp = temp->next;
             temp->next = newExpense;
         }
     }
@@ -232,19 +268,45 @@ void loadExpenseData(ExpenseNode **expenseList) {
 }
 
 // Load Metadata (counts and last IDs) from the metadata file
-void loadMetadata(int *numOfFams, int *numOfUsers, int *numOfExpenses, int *lastFamId, int *lastUserId, int *lastExpId) {
+void loadMetadata(int *numOfFams, int *numOfUsers, int *numOfExpenses, int *lastFamId, int *lastUserId, int *lastExpId)
+{
     FILE *file = fopen("metadata.csv", "r");
-    if (file == NULL) {
+    if (file == NULL)
+    {
         printf("Error opening file for loading metadata.\n");
         return;
     }
 
-    if (fscanf(file, "%d,%d,%d,%d,%d,%d", 
-               numOfFams, numOfUsers, numOfExpenses, lastFamId, lastUserId, lastExpId) != 6) {
+    if (fscanf(file, "%d,%d,%d,%d,%d,%d",
+               numOfFams, numOfUsers, numOfExpenses, lastFamId, lastUserId, lastExpId) != 6)
+    {
         printf("Invalid metadata format in metadata.csv\n");
     }
 
     fclose(file);
+}
+
+void updateFamilyMembers(FamNode *fam_list_ptr, UserNode *user_list_ptr)
+{
+    UserNode *user_node_ptr = user_list_ptr;
+
+    while (user_node_ptr)
+    {
+        FamNode *fam_node_ptr = fam_list_ptr;
+        boolean family_found = FALSE;
+
+        while (fam_node_ptr && family_found == FALSE)
+        {
+            if (fam_node_ptr->family_id == user_node_ptr->family_id)
+            {
+                AddUsertoFamily(fam_node_ptr, user_node_ptr);
+                family_found = TRUE; // Flag to stop searching for this user
+            }
+            fam_node_ptr = fam_node_ptr->next;
+        }
+
+        user_node_ptr = user_node_ptr->next;
+    }
 }
 
 int main()
@@ -263,12 +325,48 @@ int main()
     int lastUserId = 0;
     int lastExpId = 0;
 
-      //~~Load data from CSV files into the linked lists
-      loadMetadata(&numOfFams, &numOfUsers, &numOfExpenses, &lastFamId, &lastUserId, &lastExpId);
+    //~~Load data from CSV files into the linked lists
+    loadMetadata(&numOfFams, &numOfUsers, &numOfExpenses, &lastFamId, &lastUserId, &lastExpId);
 
-      loadFamilyData(&Fams_List);
-      loadUserData(&Users_List);
-      loadExpenseData(&Expenses_List);
+    loadFamilyData(&Fams_List);
+    loadUserData(&Users_List);
+    loadExpenseData(&Expenses_List);
+
+    // sort FamsList,UserList,ExpenseList
+    mergeSortFamilies(&Fams_List);
+    mergeSortUsers(&Users_List);
+    mergeSortExpenses(&Expenses_List);
+
+    // update members array of family
+    FamNode *fam_node_ptr = Fams_List;
+    updateFamilyMembers(Fams_List, Users_List);
+    while (fam_node_ptr)
+    {
+        printf("\nFamily ID: %d, Name: %s\n", fam_node_ptr->family_id, fam_node_ptr->family_name);
+        printf("Members:\n");
+
+        for (int i = 0; i < FAM_MAX_SIZE; i++)
+        {
+            if (fam_node_ptr->family_members_ptr[i] != NULL)
+            {
+                printf("  - User ID: %d, Name: %s, Income: %.2f\n",
+                       fam_node_ptr->family_members_ptr[i]->user_id,
+                       fam_node_ptr->family_members_ptr[i]->user_name,
+                       fam_node_ptr->family_members_ptr[i]->user_income);
+            }
+        }
+
+        fam_node_ptr = fam_node_ptr->next;
+    }
+
+    // Display Family List
+    displayFamilies(Fams_List);
+
+    // Display User List
+    displayUsers(Users_List);
+
+    // Display Expense List
+    displayExpenses(Expenses_List);
 
     UserNode *active_userNode_ptr = NULL;
     FamNode *active_famNode_ptr = NULL;
@@ -323,13 +421,12 @@ int main()
     }
 
     printf("\nExiting App. . .");
-   // Before exiting, save all data to CSV files
-   saveMetadata(numOfFams, numOfUsers, numOfExpenses, lastFamId, lastUserId, lastExpId);
+    // Before exiting, save all data to CSV files
+    saveMetadata(numOfFams, numOfUsers, numOfExpenses, lastFamId, lastUserId, lastExpId);
 
-   saveFamilyData(Fams_List);
-   saveUserData(Users_List);
-   saveExpenseData(Expenses_List);
-
+    saveFamilyData(Fams_List);
+    saveUserData(Users_List);
+    saveExpenseData(Expenses_List);
 
     return 0;
 }
@@ -578,16 +675,16 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                 break;
 
             case 3:
-            
+
                 ExpenseNode *temp = *Exps_Listpptr;
-                int found = 0;
+                boolean found = FALSE;
                 float total_expense = 0.0;
 
                 while (temp != NULL)
                 {
                     if (temp->user_id == active_userNode_ptr->user_id)
                     {
-                        found = 1;
+                        found = TRUE;
                         printf("| %-10d | %-10d | %-12.2f | %-10d |\n",
                                temp->expense_id, temp->category, temp->expense_amount, temp->date);
                         total_expense += temp->expense_amount;
@@ -611,7 +708,8 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
             case 4:
                 printf("\nSelect Expense Category (0: RENT, 1: UTILITY, 2: GROCERY, 3: STATIONARY, 4: LEISURE): ");
                 Categorytype category_input;
-                Get_categorical_expense(*Exps_Listpptr, *Users_Listpptr, active_famNode_ptr, category_input);
+                scanf("%d", &category_input);
+                Get_categorical_expense(Exps_Listpptr, *Users_Listpptr, active_famNode_ptr, category_input);
 
                 // Display expense categories and corresponding totals
                 // void CAtegoricalExpense
@@ -619,6 +717,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
 
             case 5:
                 printf("\nFinding the day with the highest expenses...");
+                Get_highest_expense_day(*Exps_Listpptr, *Users_Listpptr, active_famNode_ptr);
                 // Identify and display the highest spending day
                 break;
 
@@ -892,134 +991,198 @@ void CalculateTotalExpense(ExpenseNode *Exps_Listptr, FamNode *active_famNode_pt
 {
     if (active_famNode_ptr == NULL || Exps_Listptr == NULL || Users_Listptr == NULL)
     {
-        printf("\nNo expenses recorded for this family.\n");
+        printf("\nError while calculating expenses\n");
     }
     else
     {
         float total_expense = 0.0;
+        boolean expense_found_in_family = FALSE; // Flag to track if at least one expense is found
+        boolean found_expense = FALSE;
         ExpenseNode *temp = Exps_Listptr;
-
+        UserNode *uptr = NULL;
+        char *userName = "Unknown";
         // Display header
         printf("\nTotal Monthly Expense Breakdown (Date-wise):\n");
-        printf("--------------------------------------------------------------\n");
+        printf("------------------------------------------------------------------------\n");
         printf("| %-10s | %-10s | %-15s | %-10s | %-10s |\n", "Date", "UserID", "User", "Amount (Rs.)", "Category");
-        printf("--------------------------------------------------------------\n");
+        printf("------------------------------------------------------------------------\n");
 
         // Iterate through expense list
+
         while (temp != NULL)
         {
-            // Find user name from user list
-            UserNode *userTemp = Users_Listptr;
-            char *userName = "Unknown";
-            while (userTemp != NULL)
+            found_expense = FALSE;
+
+            for (int i = 0; i < FAM_MAX_SIZE && !found_expense; i++)
             {
-                if (userTemp->user_id == temp->user_id)
+                if (active_famNode_ptr->family_members_ptr[i] != NULL)
                 {
-                    userName = userTemp->user_name;
-                    break;
+                    uptr = active_famNode_ptr->family_members_ptr[i];
+
+                    if (temp->user_id == uptr->user_id)
+                    {
+                        found_expense = TRUE;
+                        expense_found_in_family = TRUE; // Set flag to true
+                        userName = uptr->user_name;
+                    }
                 }
-                userTemp = userTemp->next;
             }
 
-            // Print expense details
-            printf("| %-10d | %-10d | %-15s | %-10.2f | %-10d |\n",
-                temp->date, temp->user_id, userName, temp->expense_amount, temp->category);
- 
+            if (found_expense)
+            {
+                printf("| %-10d | %-10d | %-15s | %-10.2f | %-10d |\n",
+                       temp->date, temp->user_id, userName, temp->expense_amount, temp->category);
+                total_expense += temp->expense_amount;
+            }
 
-            total_expense += temp->expense_amount;
             temp = temp->next;
         }
-
-        float balance = active_famNode_ptr->family_income - total_expense;
-        printf("--------------------------------------------------------------\n");
-        printf("Total Family Monthly Expense: Rs. %.2f\n", total_expense);
-        printf("Total Family Monthly Balance: Rs. %.2f\n", balance);
-        printf("--------------------------------------------------------------\n");
-
-        // Update the family's total expense value
-        active_famNode_ptr->family_expense = total_expense;
-    }
-}
-
-void Get_categorical_expense(ExpenseNode *Exps_Listptr, UserNode *active_userNode_ptr, FamNode *active_famNode_ptr, Categorytype category)
-{
-    // // Sort users in descending order based on their expense in this category
-    // mergeSort(userArray, 0, user_count - 1, category);
-
-    // // Display results
-    // printf("\nTotal Family Expense for Category %d: Rs. %.2f\n", category, total_category_expense);
-    // printf("------------------------------------------------------\n");
-    // printf("| %-10s | %-15s | %-15s |\n", "User ID", "User Name", "Amount Spent (Rs.)");
-    // printf("------------------------------------------------------\n");
-
-    // for (int i = 0; i < user_count; i++) {
-    //     if (userArray[i]->category_expense[category] > 0) {
-    //         printf("| %-10d | %-15s | %-15.2f |\n",
-    //                userArray[i]->user_id, userArray[i]->user_name, userArray[i]->category_expense[category]);
-    //     }
-    // }
-
-    // printf("------------------------------------------------------\n");
-}
-
-// Function to merge two subarrays in descending order based on category expense
-void merge(UserNode **userArray, int left, int mid, int right, int category)
-{
-    int n1 = mid - left + 1;
-    int n2 = right - mid;
-
-    // Create temporary arrays to hold the divided sections
-    UserNode *leftArray[n1], *rightArray[n2];
-
-    for (int i = 0; i < n1; i++)
-    {
-        leftArray[i] = userArray[left + i];
-    }
-    for (int i = 0; i < n2; i++)
-    {
-        rightArray[i] = userArray[mid + 1 + i];
-    }
-
-    // Merge the temporary arrays back into userArray[] in descending order
-    int i = 0, j = 0, k = left;
-    while (i < n1 && j < n2)
-    {
-        if (leftArray[i]->category_expense[category] > rightArray[j]->category_expense[category])
+        printf("------------------------------------------------------------------------\n");
+        if (!expense_found_in_family)
         {
-            userArray[k++] = leftArray[i++];
+            printf("\nNo expenses recorded.\n");
         }
         else
         {
-            userArray[k++] = rightArray[j++];
+            // Display total family monthly expense
+            float balance = active_famNode_ptr->family_income - total_expense;
+            printf("Total Family Monthly Expense: Rs. %.2f\n", total_expense);
+            printf("Total Family Monthly Balance: Rs. %.2f\n", balance);
+            printf("------------------------------------------------------------------------\n");
+
+            // Update the family's total expense value
+            active_famNode_ptr->family_expense = total_expense;
         }
-    }
-
-    // Copy the remaining elements of leftArray[], if any
-    while (i < n1)
-    {
-        userArray[k++] = leftArray[i++];
-    }
-
-    // Copy the remaining elements of rightArray[], if any
-    while (j < n2)
-    {
-        userArray[k++] = rightArray[j++];
     }
 }
 
-// Function to implement Merge Sort
-void mergeSort(UserNode **userArray, int left, int right, int category)
+void Get_categorical_expense(ExpenseNode **Exps_Listpptr, UserNode *Users_Listptr, FamNode *active_famNode_ptr, Categorytype category)
 {
-    if (left < right)
+    if (active_famNode_ptr == NULL || Exps_Listpptr == NULL || *Exps_Listpptr == NULL)
     {
-        int mid = left + (right - left) / 2;
+        printf("\nError while calculating categorical expenses.\n");
+        return;
+    }
 
-        // Recursively divide the array into two halves
-        mergeSort(userArray, left, mid, category);
-        mergeSort(userArray, mid + 1, right, category);
+    // Sorting expenses
+    mergeSortExpenses(Exps_Listpptr);
 
-        // Merge the sorted halves
-        merge(userArray, left, mid, right, category);
+    float total_expense = 0.0;
+    ExpenseNode *temp = *Exps_Listpptr;
+    boolean category_found = FALSE; // Flag to track if any expense is found
+    boolean found_expense = FALSE;
+    char *userName = "Unknown";
+
+    // Display header
+    printf("\nTotal Monthly Expense Breakdown for Category : %-10d (Date-wise):\n", category);
+    printf("--------------------------------------------------------------\n");
+    printf("| %-10s | %-10s | %-15s | %-10s |\n", "Date", "UserID", "User", "Amount (Rs.)");
+    printf("--------------------------------------------------------------\n");
+
+    // Iterate through expense list
+    while (temp != NULL)
+    {
+        found_expense = FALSE;
+
+        for (int i = 0; i < FAM_MAX_SIZE && !found_expense; i++)
+        {
+            if (active_famNode_ptr->family_members_ptr[i] != NULL)
+            {
+                UserNode *uptr = active_famNode_ptr->family_members_ptr[i];
+
+                if (temp->user_id == uptr->user_id)
+                {
+                    found_expense = TRUE;
+                    category_found = TRUE; // Set flag indicating an expense is found
+                    userName = uptr->user_name;
+                }
+            }
+        }
+
+        // Print only if the expense belongs to a family member and matches the given category
+        if (found_expense && temp->category == category)
+        {
+            printf("| %-10d | %-10d | %-15s | %-10.2f |\n",
+                   temp->date, temp->user_id, userName, temp->expense_amount);
+
+            total_expense += temp->expense_amount;
+        }
+
+        temp = temp->next;
+    }
+
+    printf("--------------------------------------------------------------\n");
+    if (!category_found)
+    {
+        printf("\nNo expenses recorded in this category.\n");
+    }
+    else
+    {
+        printf("Total Family Monthly Expense in Category %-10d: Rs. %.2f\n", category, total_expense);
+        printf("--------------------------------------------------------------\n");
+    }
+}
+
+void Get_highest_expense_day(ExpenseNode *Exps_Listptr, UserNode *Users_Listptr, FamNode *active_famNode_ptr)
+{
+    if (active_famNode_ptr == NULL || Exps_Listptr == NULL || Users_Listptr == NULL)
+    {
+        printf("\nError while calculating highest expense day.\n");
+        return;
+    }
+
+    float daily_expense[11] = {0}; // Index 0 is unused (dates 1-10)
+    ExpenseNode *temp = Exps_Listptr;
+    boolean highest_expense_day_found = FALSE;
+    boolean found_expense = FALSE;
+    float max_expense = 0.0;
+    int highest_expense_day = 0;
+
+    // Iterate through the expense list and accumulate expenses for each date
+    while (temp != NULL)
+    {
+        found_expense = FALSE;
+
+        for (int i = 0; i < FAM_MAX_SIZE && !found_expense; i++)
+        {
+            if (active_famNode_ptr->family_members_ptr[i] != NULL)
+            {
+                UserNode *uptr = active_famNode_ptr->family_members_ptr[i];
+
+                if (temp->user_id == uptr->user_id)
+                {
+                    found_expense = TRUE;
+                }
+            }
+        }
+
+        if (found_expense)
+        {
+            daily_expense[temp->date] += temp->expense_amount;
+        }
+
+        temp = temp->next;
+    }
+
+    // Determine the highest expense day
+    for (int i = 1; i <= 10; i++)
+    {
+        if (daily_expense[i] > max_expense)
+        {
+            max_expense = daily_expense[i];
+            highest_expense_day = i;
+            highest_expense_day_found = TRUE;
+        }
+    }
+
+    // Print result
+    if (highest_expense_day_found)
+    {
+        printf("\nHighest Expense Day: %d with an expense of Rs. %.2f\n", highest_expense_day, max_expense);
+    }
+    else
+    {
+        printf("\nNo expenses recorded for this family.\n");
     }
 }
 

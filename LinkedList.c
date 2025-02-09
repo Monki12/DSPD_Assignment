@@ -323,6 +323,209 @@ status_code DeleteAfter_Exp(ExpenseNode** lpptr, ExpenseNode* prev_ptr, ExpenseN
     return sc;
 }
 
+// Merge Sort for Family List
+FamNode* mergeSortedFamilies(FamNode* a, FamNode* b) {
+    if (!a) return b;
+    if (!b) return a;
+
+    if (a->family_id <= b->family_id) {
+        a->next = mergeSortedFamilies(a->next, b);
+        return a;
+    } else {
+        b->next = mergeSortedFamilies(a, b->next);
+        return b;
+    }
+}
+
+void splitFamilyList(FamNode* source, FamNode** front, FamNode** back) {
+    FamNode* fast = source->next;
+    FamNode* slow = source;
+
+    while (fast) {
+        fast = fast->next;
+        if (fast) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+    }
+
+    *front = source;
+    *back = slow->next;
+    slow->next = NULL;
+}
+
+void mergeSortFamilies(FamNode** headRef) {
+    if (!(*headRef) || !(*headRef)->next) return;
+
+    FamNode* a;
+    FamNode* b;
+
+    splitFamilyList(*headRef, &a, &b);
+    mergeSortFamilies(&a);
+    mergeSortFamilies(&b);
+    *headRef = mergeSortedFamilies(a, b);
+}
+
+// Merge Sort for User List
+UserNode* mergeSortedUsers(UserNode* a, UserNode* b) {
+    if (!a) return b;
+    if (!b) return a;
+
+    if (a->user_id <= b->user_id) {
+        a->next = mergeSortedUsers(a->next, b);
+        return a;
+    } else {
+        b->next = mergeSortedUsers(a, b->next);
+        return b;
+    }
+}
+
+void splitUserList(UserNode* source, UserNode** front, UserNode** back) {
+    UserNode* fast = source->next;
+    UserNode* slow = source;
+
+    while (fast) {
+        fast = fast->next;
+        if (fast) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+    }
+
+    *front = source;
+    *back = slow->next;
+    slow->next = NULL;
+}
+
+void mergeSortUsers(UserNode** headRef) {
+    if (!(*headRef) || !(*headRef)->next) return;
+
+    UserNode* a;
+    UserNode* b;
+
+    splitUserList(*headRef, &a, &b);
+    mergeSortUsers(&a);
+    mergeSortUsers(&b);
+    *headRef = mergeSortedUsers(a, b);
+}
+
+// Merge Sort for Expenses (Sort by user_id first, then by expense_id)
+ExpenseNode* mergeSortedExpenses(ExpenseNode* a, ExpenseNode* b) {
+    if (!a) return b;
+    if (!b) return a;
+
+    if ((a->user_id < b->user_id) || 
+        (a->user_id == b->user_id && a->expense_id < b->expense_id)) {
+        a->next = mergeSortedExpenses(a->next, b);
+        return a;
+    } else {
+        b->next = mergeSortedExpenses(a, b->next);
+        return b;
+    }
+}
+
+void splitExpenseList(ExpenseNode* source, ExpenseNode** front, ExpenseNode** back) {
+    ExpenseNode* fast = source->next;
+    ExpenseNode* slow = source;
+
+    while (fast) {
+        fast = fast->next;
+        if (fast) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+    }
+
+    *front = source;
+    *back = slow->next;
+    slow->next = NULL;
+}
+
+void mergeSortExpenses(ExpenseNode** headRef) {
+    if (!(*headRef) || !(*headRef)->next) return;
+
+    ExpenseNode* a;
+    ExpenseNode* b;
+
+    splitExpenseList(*headRef, &a, &b);
+    mergeSortExpenses(&a);
+    mergeSortExpenses(&b);
+    *headRef = mergeSortedExpenses(a, b);
+}
+
+// Display Family List
+void displayFamilies(FamNode *Fams_List) {
+    if (Fams_List == NULL) {
+        printf("\nNo families recorded.\n");
+        return;
+    }
+
+    printf("\nFamily List:\n");
+    printf("----------------------------------------------------------\n");
+    printf("| %-5s | %-15s | %-10s | %-10s | %-10s |\n", 
+           "ID", "Family Name", "Users", "Income", "Expense");
+    printf("----------------------------------------------------------\n");
+
+    FamNode *temp = Fams_List;
+    while (temp != NULL) {
+        printf("| %-5d | %-15s | %-10d | %-10.2f | %-10.2f |\n", 
+               temp->family_id, temp->family_name, temp->no_of_users, 
+               temp->family_income, temp->family_expense);
+        temp = temp->next;
+    }
+
+    printf("----------------------------------------------------------\n");
+}
+
+// Display User List
+void displayUsers(UserNode *Users_List) {
+    if (Users_List == NULL) {
+        printf("\nNo users recorded.\n");
+        return;
+    }
+
+    printf("\nUser List:\n");
+    printf("----------------------------------------------------------\n");
+    printf("| %-5s | %-5s | %-15s | %-10s |\n", 
+           "ID", "FamID", "User Name", "Income");
+    printf("----------------------------------------------------------\n");
+
+    UserNode *temp = Users_List;
+    while (temp != NULL) {
+        printf("| %-5d | %-5d | %-15s | %-10.2f |\n", 
+               temp->user_id, temp->family_id, temp->user_name, 
+               temp->user_income);
+        temp = temp->next;
+    }
+
+    printf("----------------------------------------------------------\n");
+}
+
+// Display Expense List
+void displayExpenses(ExpenseNode *Expenses_List) {
+    if (Expenses_List == NULL) {
+        printf("\nNo expenses recorded.\n");
+        return;
+    }
+
+    printf("\nExpense List:\n");
+    printf("--------------------------------------------------------------\n");
+    printf("| %-5s | %-5s | %-10s | %-10s | %-5s |\n", 
+           "ExpID", "UserID", "Category", "Amount (Rs.)", "Date");
+    printf("--------------------------------------------------------------\n");
+
+    ExpenseNode *temp = Expenses_List;
+    while (temp != NULL) {
+        printf("| %-5d | %-5d | %-10d | %-10.2f | %-5d |\n", 
+               temp->expense_id, temp->user_id, temp->category, 
+               temp->expense_amount, temp->date);
+        temp = temp->next;
+    }
+
+    printf("--------------------------------------------------------------\n");
+}
+
+
 // status_code DeleteAfter(Node** lpptr, Node* prev_ptr, Node* node_ptr, void** data_pptr)
 // {
 //     status_code sc = SUCCESS;
