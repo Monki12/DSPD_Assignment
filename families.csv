@@ -6,6 +6,6 @@ FamilyID,FamilyName,NoOfUsers,FamilyIncome,FamilyExpense
 5,Rao,5,900000.00,0.00
 6,Nair,3,480000.00,0.00
 7,Patel,2,350000.00,0.00
-8,Kumar,4,600000.00,0.00
+8,Kumar,4,600000.00,23100.00
 9,Das,1,150000.00,0.00
 10,Mishra,2,270000.00,0.00

@@ -325,132 +325,215 @@ status_code DeleteAfter_Exp(ExpenseNode** lpptr, ExpenseNode* prev_ptr, ExpenseN
 
 // Merge Sort for Family List
 FamNode* mergeSortedFamilies(FamNode* a, FamNode* b) {
-    if (!a) return b;
-    if (!b) return a;
-
-    if (a->family_id <= b->family_id) {
-        a->next = mergeSortedFamilies(a->next, b);
-        return a;
+    FamNode* result = NULL;
+    boolean isAFirst = FALSE;
+    
+    if (!a && !b) {
+        result = NULL;
+    } else if (!a) {
+        result = b;
+    } else if (!b) {
+        result = a;
     } else {
-        b->next = mergeSortedFamilies(a, b->next);
-        return b;
+        if (a->family_id <= b->family_id) {
+            isAFirst = TRUE;
+        }
+
+        if (isAFirst) {
+            result = a;
+            result->next = mergeSortedFamilies(a->next, b);
+        } else {
+            result = b;
+            result->next = mergeSortedFamilies(a, b->next);
+        }
     }
+    return result;
 }
 
 void splitFamilyList(FamNode* source, FamNode** front, FamNode** back) {
-    FamNode* fast = source->next;
-    FamNode* slow = source;
-
-    while (fast) {
+    FamNode* fast = NULL;
+    FamNode* slow = NULL;
+    boolean hasMoreThanOneNode = FALSE;
+    
+    if (source) {
+        fast = source->next;
+        slow = source;
+        hasMoreThanOneNode = (fast != NULL) ? TRUE : FALSE;
+    }
+    
+    while (hasMoreThanOneNode) {
         fast = fast->next;
         if (fast) {
             slow = slow->next;
             fast = fast->next;
         }
+        hasMoreThanOneNode = (fast != NULL) ? TRUE : FALSE;
     }
-
-    *front = source;
-    *back = slow->next;
-    slow->next = NULL;
+    
+    if (source) {
+        *front = source;
+        *back = slow->next;
+        slow->next = NULL;
+    }
 }
 
 void mergeSortFamilies(FamNode** headRef) {
-    if (!(*headRef) || !(*headRef)->next) return;
-
-    FamNode* a;
-    FamNode* b;
-
-    splitFamilyList(*headRef, &a, &b);
-    mergeSortFamilies(&a);
-    mergeSortFamilies(&b);
-    *headRef = mergeSortedFamilies(a, b);
+    FamNode* a = NULL;
+    FamNode* b = NULL;
+    boolean needsSorting = FALSE;
+    
+    if (*headRef && (*headRef)->next) {
+        needsSorting = TRUE;
+    }
+    
+    if (needsSorting) {
+        splitFamilyList(*headRef, &a, &b);
+        mergeSortFamilies(&a);
+        mergeSortFamilies(&b);
+        *headRef = mergeSortedFamilies(a, b);
+    }
 }
 
-// Merge Sort for User List
-UserNode* mergeSortedUsers(UserNode* a, UserNode* b) {
-    if (!a) return b;
-    if (!b) return a;
 
-    if (a->user_id <= b->user_id) {
-        a->next = mergeSortedUsers(a->next, b);
-        return a;
+UserNode* mergeSortedUsers(UserNode* a, UserNode* b) {
+    UserNode* result = NULL;
+    boolean isAFirst = FALSE;
+    
+    if (!a && !b) {
+        result = NULL;
+    } else if (!a) {
+        result = b;
+    } else if (!b) {
+        result = a;
     } else {
-        b->next = mergeSortedUsers(a, b->next);
-        return b;
+        if (a->user_id <= b->user_id) {
+            isAFirst = TRUE;
+        }
+
+        if (isAFirst) {
+            result = a;
+            result->next = mergeSortedUsers(a->next, b);
+        } else {
+            result = b;
+            result->next = mergeSortedUsers(a, b->next);
+        }
     }
+    return result;
 }
 
 void splitUserList(UserNode* source, UserNode** front, UserNode** back) {
-    UserNode* fast = source->next;
-    UserNode* slow = source;
-
-    while (fast) {
+    UserNode* fast = NULL;
+    UserNode* slow = NULL;
+    boolean hasMoreThanOneNode = FALSE;
+    
+    if (source) {
+        fast = source->next;
+        slow = source;
+        hasMoreThanOneNode = (fast != NULL) ? TRUE : FALSE;
+    }
+    
+    while (hasMoreThanOneNode) {
         fast = fast->next;
         if (fast) {
             slow = slow->next;
             fast = fast->next;
         }
+        hasMoreThanOneNode = (fast != NULL) ? TRUE : FALSE;
     }
-
-    *front = source;
-    *back = slow->next;
-    slow->next = NULL;
+    
+    if (source) {
+        *front = source;
+        *back = slow->next;
+        slow->next = NULL;
+    }
 }
 
 void mergeSortUsers(UserNode** headRef) {
-    if (!(*headRef) || !(*headRef)->next) return;
-
-    UserNode* a;
-    UserNode* b;
-
-    splitUserList(*headRef, &a, &b);
-    mergeSortUsers(&a);
-    mergeSortUsers(&b);
-    *headRef = mergeSortedUsers(a, b);
-}
-
-// Merge Sort for Expenses (Sort by user_id first, then by expense_id)
-ExpenseNode* mergeSortedExpenses(ExpenseNode* a, ExpenseNode* b) {
-    if (!a) return b;
-    if (!b) return a;
-
-    if ((a->user_id < b->user_id) || 
-        (a->user_id == b->user_id && a->expense_id < b->expense_id)) {
-        a->next = mergeSortedExpenses(a->next, b);
-        return a;
-    } else {
-        b->next = mergeSortedExpenses(a, b->next);
-        return b;
+    UserNode* a = NULL;
+    UserNode* b = NULL;
+    boolean needsSorting = FALSE;
+    
+    if (*headRef && (*headRef)->next) {
+        needsSorting = TRUE;
+    }
+    
+    if (needsSorting) {
+        splitUserList(*headRef, &a, &b);
+        mergeSortUsers(&a);
+        mergeSortUsers(&b);
+        *headRef = mergeSortedUsers(a, b);
     }
 }
 
-void splitExpenseList(ExpenseNode* source, ExpenseNode** front, ExpenseNode** back) {
-    ExpenseNode* fast = source->next;
-    ExpenseNode* slow = source;
+ExpenseNode* mergeSortedExpenses(ExpenseNode* a, ExpenseNode* b) {
+    ExpenseNode* result = NULL;
+    boolean isAFirst = FALSE;
+    
+    if (!a && !b) {
+        result = NULL;
+    } else if (!a) {
+        result = b;
+    } else if (!b) {
+        result = a;
+    } else {
+        if ((a->user_id < b->user_id) || 
+            (a->user_id == b->user_id && a->expense_id < b->expense_id)) {
+            isAFirst = TRUE;
+        }
 
-    while (fast) {
+        if (isAFirst) {
+            result = a;
+            result->next = mergeSortedExpenses(a->next, b);
+        } else {
+            result = b;
+            result->next = mergeSortedExpenses(a, b->next);
+        }
+    }
+    return result;
+}
+
+void splitExpenseList(ExpenseNode* source, ExpenseNode** front, ExpenseNode** back) {
+    ExpenseNode* fast = NULL;
+    ExpenseNode* slow = NULL;
+    boolean hasMoreThanOneNode = FALSE;
+    
+    if (source) {
+        fast = source->next;
+        slow = source;
+        hasMoreThanOneNode = (fast != NULL) ? TRUE : FALSE;
+    }
+    
+    while (hasMoreThanOneNode) {
         fast = fast->next;
         if (fast) {
             slow = slow->next;
             fast = fast->next;
         }
+        hasMoreThanOneNode = (fast != NULL) ? TRUE : FALSE;
     }
-
-    *front = source;
-    *back = slow->next;
-    slow->next = NULL;
+    
+    if (source) {
+        *front = source;
+        *back = slow->next;
+        slow->next = NULL;
+    }
 }
 
 void mergeSortExpenses(ExpenseNode** headRef) {
-    if (!(*headRef) || !(*headRef)->next) return;
-
-    ExpenseNode* a;
-    ExpenseNode* b;
-
-    splitExpenseList(*headRef, &a, &b);
-    mergeSortExpenses(&a);
-    mergeSortExpenses(&b);
-    *headRef = mergeSortedExpenses(a, b);
+    ExpenseNode* a = NULL;
+    ExpenseNode* b = NULL;
+    boolean needsSorting = FALSE;
+    
+    if (*headRef && (*headRef)->next) {
+        needsSorting = TRUE;
+    }
+    
+    if (needsSorting) {
+        splitExpenseList(*headRef, &a, &b);
+        mergeSortExpenses(&a);
+        mergeSortExpenses(&b);
+        *headRef = mergeSortedExpenses(a, b);
+    }
 }
 
 // Display Family List
