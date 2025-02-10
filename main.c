@@ -737,9 +737,9 @@ Pagetype LoginPage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, UserNode 
     printf("\nPlease enter User Id : ");
     scanf("%d", &user_id);
 
-    printf("\nPlease enter User name : ");
-    getchar();
-    scanf("%[^\n]s", user_name); // can use fgets(user_name,MAX_NAME_SIZE,stdin)
+    // printf("\nPlease enter User name : ");
+    // getchar();
+    // scanf("%[^\n]s", user_name); // can use fgets(user_name,MAX_NAME_SIZE,stdin)
 
     // Search User list
     // creating dummy prev pointers
