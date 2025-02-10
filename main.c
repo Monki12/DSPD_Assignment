@@ -21,8 +21,8 @@ void CalculateTotalExpense(ExpenseNode *Exps_Listptr, FamNode *active_famNode_pt
 void Get_categorical_expense(ExpenseNode **Exps_Listptr, UserNode *Users_Listptr, FamNode *active_famNode_ptr, Categorytype category);
 void Get_highest_expense_day(ExpenseNode *Exps_Listpptr, UserNode *Users_Listpptr, FamNode *active_famNode_ptr);
 void AddUsertoFamily(FamNode *active_fam_ptr, UserNode *newUser_ptr);
-status_code DeleteUser(UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr,  int *numofUsers_ptr, int userID,Queue* deleted_exp_ids);
-status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, UserNode *active_userNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int famID,Queue *deleted_user_ids, Queue *deleted_exp_ids);
+status_code DeleteUser(UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, int *numofUsers_ptr, int userID, Queue *deleted_exp_ids);
+status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, UserNode *active_userNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int famID, Queue *deleted_user_ids, Queue *deleted_exp_ids);
 void Get_User_expense(ExpenseNode *Exps_Listptr, UserNode *active_userNode_ptr);
 
 // File handling
@@ -973,7 +973,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                     if (confirm)
                     {
                         printf("\nDeletion Confirmed.");
-                        sc = DeleteUser(Users_Listpptr, Exps_Listpptr, active_famNode_ptr, userID,deleted_exp_ids,numofUsers_ptr);
+                        sc = DeleteUser(Users_Listpptr, Exps_Listpptr, active_famNode_ptr,numofUsers_ptr, userID, deleted_exp_ids);
                         if (sc == SUCCESS)
                         {
                             printf("\nUser Deleted Successfully");
@@ -990,9 +990,9 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                 }
                 else
                 {
-                    sc = DeleteUser(Users_Listpptr, Exps_Listpptr, active_famNode_ptr, numofUsers_ptr,userID,deleted_exp_ids);
-                    if(sc)
-                    Enqueue(userID, deleted_user_ids);
+                    sc = DeleteUser(Users_Listpptr, Exps_Listpptr, active_famNode_ptr, numofUsers_ptr, userID, deleted_exp_ids);
+                    if (sc)
+                        Enqueue(userID, deleted_user_ids);
                 }
 
                 if (sc == SUCCESS)
@@ -1002,7 +1002,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                     if (active_famNode_ptr->no_of_users == 0)
                     {
                         // Delete family;
-                        sc = DeleteFamily(Fams_Listpptr, Users_Listpptr, Exps_Listpptr, active_famNode_ptr, active_userNode_ptr, numOfFams_ptr, numofUsers_ptr, numOfExp_ptr, active_famNode_ptr->family_id,deleted_user_ids,deleted_exp_ids);
+                        sc = DeleteFamily(Fams_Listpptr, Users_Listpptr, Exps_Listpptr, active_famNode_ptr, active_userNode_ptr, numOfFams_ptr, numofUsers_ptr, numOfExp_ptr, active_famNode_ptr->family_id, deleted_user_ids, deleted_exp_ids);
                         if (sc)
                         {
                             Enqueue(famId, deleted_fam_ids);
@@ -1019,7 +1019,7 @@ Pagetype FamilyHomePage(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, Expe
                 scanf("%d", &famID);
                 if (famID == active_famNode_ptr->family_id)
                 {
-                    status_code sc2 = DeleteFamily(Fams_Listpptr, Users_Listpptr, Exps_Listpptr, active_famNode_ptr, active_userNode_ptr, numOfFams_ptr, numofUsers_ptr, numOfExp_ptr, famID,deleted_user_ids,deleted_exp_ids);
+                    status_code sc2 = DeleteFamily(Fams_Listpptr, Users_Listpptr, Exps_Listpptr, active_famNode_ptr, active_userNode_ptr, numOfFams_ptr, numofUsers_ptr, numOfExp_ptr, famID, deleted_user_ids, deleted_exp_ids);
                     if (sc2 == SUCCESS)
                     {
                         *numOfFams_ptr--;
@@ -1385,7 +1385,7 @@ void Get_highest_expense_day(ExpenseNode *Exps_Listptr, UserNode *Users_Listptr,
     }
 }
 
-status_code DeleteUser(UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, int *numofUsers_ptr ,int userID,Queue* deleted_exp_ids)
+status_code DeleteUser(UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, int *numofUsers_ptr, int userID, Queue *deleted_exp_ids)
 {
 
     status_code sc = FAILURE;
@@ -1403,7 +1403,7 @@ status_code DeleteUser(UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, F
             {
                 expId = exp->expense_id;
                 DeleteAfter_Exp(Exps_Listpptr, prev_Exp_ptr, exp);
-                Enqueue(expId,deleted_exp_ids);
+                Enqueue(expId, deleted_exp_ids);
                 exp = prev_Exp_ptr->next;
             }
             else
@@ -1450,24 +1450,25 @@ void AddUsertoFamily(FamNode *active_fam_ptr, UserNode *newUser_ptr)
     }
 }
 
-status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, UserNode *active_userNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int famID,Queue *deleted_user_ids, Queue *deleted_exp_ids)
+status_code DeleteFamily(FamNode **Fams_Listpptr, UserNode **Users_Listpptr, ExpenseNode **Exps_Listpptr, FamNode *active_famNode_ptr, UserNode *active_userNode_ptr, int *numOfFams_ptr, int *numofUsers_ptr, int *numOfExp_ptr, int famID, Queue *deleted_user_ids, Queue *deleted_exp_ids)
 {
     printf("\nreached Delete function");
     status_code sc = SUCCESS;
-    int userId =0 ;
+    int userId = 0;
     for (int i = 0; i < FAM_MAX_SIZE && sc; i++)
     {
         if (active_famNode_ptr->family_members_ptr[i] != 0)
         {
             userId = (active_famNode_ptr->family_members_ptr[i])->user_id;
             printf("\nAttempting to delete user ID: %d", userId);
-            sc = DeleteUser(Users_Listpptr, Exps_Listpptr, active_famNode_ptr,userId,deleted_exp_ids,numofUsers_ptr);
+            sc = DeleteUser(Users_Listpptr, Exps_Listpptr, active_famNode_ptr,numofUsers_ptr, userId, deleted_exp_ids);
             if (sc == FAILURE)
             {
                 printf("\nFailed to delete user ID: %d", userId);
             }
-            else{
-                Enqueue(userId,deleted_user_ids);
+            else
+            {
+                Enqueue(userId, deleted_user_ids);
             }
         }
     }
